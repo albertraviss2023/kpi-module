@@ -1,0 +1,91 @@
+version: '3.8'
+
+x-airflow-common: &airflow-common
+  build: ./airflow
+  environment:
+    AIRFLOW__CORE__EXECUTOR: ${AIRFLOW_CORE_EXECUTOR:-LocalExecutor}
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: mysql+mysqldb://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql-db/${MYSQL_DATABASE}
+    AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW_CORE_LOAD_EXAMPLES:-false}
+    AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_WEBSERVER_SECRET_KEY}
+    AIRFLOW__LOGGING__REMOTE_LOGGING: ${AIRFLOW_LOGGING_REMOTE_LOGGING:-false}
+    AIRFLOW__LOGGING__BASE_LOG_FOLDER: ${AIRFLOW_LOGGING_BASE_LOG_FOLDER:-/opt/airflow/logs}
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: ${AIRFLOW_WEBSERVER_EXPOSE_CONFIG:-True}
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs:rw
+    - ./airflow/etl_scripts:/opt/etl_scripts
+    - ./.env:/opt/etl_scripts/.env 
+  networks:
+    - pipeline_net
+  logging:
+    driver: json-file
+    options:
+      max-size: ${LOGGING_MAX_SIZE:-10m}
+      max-file: ${LOGGING_MAX_FILE:-3}
+
+services:
+  mysql:
+    image: mysql:${MYSQL_VERSION:-8.0}
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d
+      - ./mysql/mysql-config/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - pipeline_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
+      interval: 5s
+      retries: 10
+      timeout: 5s
+      start_period: 30s
+    env_file:
+      - .env
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: ["bash", "-c", "for i in {1..5}; do airflow db init && (airflow users list | grep -q ${AIRFLOW_WWW_USER_USERNAME} || airflow users create --username ${AIRFLOW_WWW_USER_USERNAME} --password ${AIRFLOW_WWW_USER_PASSWORD} --firstname Admin --lastname User --role Admin --email ${AIRFLOW_WWW_USER_EMAIL:-admin@example.com}) && break || sleep 5; done"]
+    restart: on-failure
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow-webserver
+    depends_on:
+      mysql:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    ports:
+      - "${AIRFLOW_WEBSERVER_PORT:-8080}:8080"
+    command: ["airflow", "webserver"]
+    restart: always
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow-scheduler
+    depends_on:
+      mysql:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    command: ["airflow", "scheduler"]
+    restart: always
+
+volumes:
+  mysql_data:
+
+networks:
+  pipeline_net:
+    driver: bridge
