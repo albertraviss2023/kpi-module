@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regulatory KPI Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .status-cell {
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .status-cell:hover {
+            text-decoration: underline;
+        }
+        .bg-red-100 { background-color: #fee2e2; }
+        .text-red-800 { color: #991b1b; }
+        .bg-orange-100 { background-color: #ffedd5; }
+        .text-orange-800 { color: #9a3412; }
+        .bg-green-100 { background-color: #dcfce7; }
+        .text-green-800 { color: #166534; }
+        #trend-modal {
+            z-index: 1000;
+        }
+        .tab-btn.active {
+            background-color: #1d4ed8;
+            font-weight: bold;
+        }
+        #trend-chart-container {
+            height: 70vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Regulatory KPI Dashboard</h1>
+        
+        <div class="flex flex-col sm:flex-row gap-4 mb-6">
+            <select id="year-filter" class="border p-2 rounded w-full sm:w-auto">
+                <option value="">All Years</option>
+            </select>
+            <div class="flex gap-2">
+                <button class="tab-btn px-4 py-2 bg-blue-500 text-white rounded active" data-tab="ma">MA</button>
+                <button class="tab-btn px-4 py-2 bg-blue-500 text-white rounded" data-tab="ct">CT</button>
+                <button class="tab-btn px-4 py-2 bg-blue-500 text-white rounded" data-tab="gmp">GMP</button>
+            </div>
+        </div>
+
+        <div id="ma-tab" class="tab-content bg-white rounded-lg shadow">
+            <div class="p-4">
+                <h2 class="text-xl font-semibold mb-4">Marketing Authorization KPIs</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="p-3 text-left">KPI Name</th>
+                                <th class="p-3 text-left">Unit</th>
+                                <th class="p-3 text-left">Status</th>
+                                <th class="p-3 text-left">Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ma-kpi-table" class="divide-y">
+                            <!-- Filled by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="ct-tab" class="tab-content hidden bg-white rounded-lg shadow">
+            <div class="p-4">
+                <h2 class="text-xl font-semibold mb-4">Clinical Trials KPIs</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="p-3 text-left">KPI Name</th>
+                                <th class="p-3 text-left">Unit</th>
+                                <th class="p-3 text-left">Status</th>
+                                <th class="p-3 text-left">Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ct-kpi-table" class="divide-y">
+                            <!-- Filled by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="gmp-tab" class="tab-content hidden bg-white rounded-lg shadow">
+            <div class="p-4">
+                <h2 class="text-xl font-semibold mb-4">GMP KPIs</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="p-3 text-left">KPI Name</th>
+                                <th class="p-3 text-left">Unit</th>
+                                <th class="p-3 text-left">Status</th>
+                                <th class="p-3 text-left">Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gmp-kpi-table" class="divide-y">
+                            <!-- Filled by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trend Modal -->
+        <div id="trend-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h3 id="modal-title" class="text-lg font-bold"></h3>
+                    <button onclick="closeTrendModal()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Close</button>
+                </div>
+                <div class="p-4 flex-1 min-h-0">
+                    <div id="trend-chart-container">
+                        <canvas id="trend-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Embedded data
+        const allData = {
+            ma: [
+                {id: 1, run_date: '2025-07-18T08:15:04', quarter: '2022Q1', pct_new_apps_evaluated_on_time: null, pct_renewal_apps_evaluated_on_time: 0},
+                {id: 2, run_date: '2025-07-18T08:15:04', quarter: '2022Q2', pct_new_apps_evaluated_on_time: 0, pct_renewal_apps_evaluated_on_time: 0},
+                {id: 3, run_date: '2025-07-18T08:15:04', quarter: '2022Q3', pct_new_apps_evaluated_on_time: 0, pct_renewal_apps_evaluated_on_time: 33.3333},
+                {id: 4, run_date: '2025-07-18T08:15:04', quarter: '2022Q4', pct_new_apps_evaluated_on_time: 0, pct_renewal_apps_evaluated_on_time: 0},
+                {id: 5, run_date: '2025-07-18T08:15:04', quarter: '2023Q1', pct_new_apps_evaluated_on_time: 0, pct_renewal_apps_evaluated_on_time: 50},
+                {id: 6, run_date: '2025-07-18T08:15:04', quarter: '2023Q2', pct_new_apps_evaluated_on_time: 0, pct_renewal_apps_evaluated_on_time: null},
+                {id: 7, run_date: '2025-07-18T08:15:04', quarter: '2023Q3', pct_new_apps_evaluated_on_time: 0, pct_renewal_apps_evaluated_on_time: null},
+                {id: 8, run_date: '2025-07-18T08:15:04', quarter: '2023Q4', pct_new_apps_evaluated_on_time: 100, pct_renewal_apps_evaluated_on_time: 0},
+                {id: 9, run_date: '2025-07-18T08:15:04', quarter: '2024Q1', pct_new_apps_evaluated_on_time: 50, pct_renewal_apps_evaluated_on_time: 0},
+                {id: 10, run_date: '2025-07-18T08:15:04', quarter: '2024Q2', pct_new_apps_evaluated_on_time: 0, pct_renewal_apps_evaluated_on_time: 50},
+                {id: 11, run_date: '2025-07-18T08:15:04', quarter: '2024Q3', pct_new_apps_evaluated_on_time: null, pct_renewal_apps_evaluated_on_time: null},
+                {id: 12, run_date: '2025-07-18T08:15:04', quarter: '2024Q4', pct_new_apps_evaluated_on_time: 50, pct_renewal_apps_evaluated_on_time: 0}
+            ],
+            ct: [
+                {id: 1, quarter: '2022Q1', pct_new_apps_evaluated_on_time: 75, pct_amendment_apps_evaluated_on_time: 80},
+                {id: 2, quarter: '2022Q2', pct_new_apps_evaluated_on_time: 78, pct_amendment_apps_evaluated_on_time: 82},
+                {id: 3, quarter: '2022Q3', pct_new_apps_evaluated_on_time: 82, pct_amendment_apps_evaluated_on_time: 85},
+                {id: 4, quarter: '2022Q4', pct_new_apps_evaluated_on_time: 85, pct_amendment_apps_evaluated_on_time: 88},
+                {id: 5, quarter: '2023Q1', pct_new_apps_evaluated_on_time: 88, pct_amendment_apps_evaluated_on_time: 90},
+                {id: 6, quarter: '2023Q2', pct_new_apps_evaluated_on_time: 90, pct_amendment_apps_evaluated_on_time: 92},
+                {id: 7, quarter: '2023Q3', pct_new_apps_evaluated_on_time: 92, pct_amendment_apps_evaluated_on_time: 94},
+                {id: 8, quarter: '2023Q4', pct_new_apps_evaluated_on_time: 95, pct_amendment_apps_evaluated_on_time: 96},
+                {id: 9, quarter: '2024Q1', pct_new_apps_evaluated_on_time: 96, pct_amendment_apps_evaluated_on_time: 97},
+                {id: 10, quarter: '2024Q2', pct_new_apps_evaluated_on_time: 97, pct_amendment_apps_evaluated_on_time: 98},
+                {id: 11, quarter: '2024Q3', pct_new_apps_evaluated_on_time: 98, pct_amendment_apps_evaluated_on_time: 99},
+                {id: 12, quarter: '2024Q4', pct_new_apps_evaluated_on_time: 99, pct_amendment_apps_evaluated_on_time: 100}
+            ],
+            gmp: [
+                {id: 1, quarter: '2022Q1', pct_facilities_inspected_on_time: 65, pct_complaint_inspections_on_time: 70},
+                {id: 2, quarter: '2022Q2', pct_facilities_inspected_on_time: 68, pct_complaint_inspections_on_time: 72},
+                {id: 3, quarter: '2022Q3', pct_facilities_inspected_on_time: 72, pct_complaint_inspections_on_time: 75},
+                {id: 4, quarter: '2022Q4', pct_facilities_inspected_on_time: 75, pct_complaint_inspections_on_time: 78},
+                {id: 5, quarter: '2023Q1', pct_facilities_inspected_on_time: 78, pct_complaint_inspections_on_time: 80},
+                {id: 6, quarter: '2023Q2', pct_facilities_inspected_on_time: 80, pct_complaint_inspections_on_time: 82},
+                {id: 7, quarter: '2023Q3', pct_facilities_inspected_on_time: 82, pct_complaint_inspections_on_time: 85},
+                {id: 8, quarter: '2023Q4', pct_facilities_inspected_on_time: 85, pct_complaint_inspections_on_time: 88},
+                {id: 9, quarter: '2024Q1', pct_facilities_inspected_on_time: 88, pct_complaint_inspections_on_time: 90},
+                {id: 10, quarter: '2024Q2', pct_facilities_inspected_on_time: 90, pct_complaint_inspections_on_time: 92},
+                {id: 11, quarter: '2024Q3', pct_facilities_inspected_on_time: 92, pct_complaint_inspections_on_time: 95},
+                {id: 12, quarter: '2024Q4', pct_facilities_inspected_on_time: 95, pct_complaint_inspections_on_time: 98}
+            ]
+        };
+
+        // Configuration
+        const kpiConfig = {
+            ma: {
+                kpis: [
+                    { key: 'pct_new_apps_evaluated_on_time', name: 'New Apps Evaluated On Time', unit: '%' },
+                    { key: 'pct_renewal_apps_evaluated_on_time', name: 'Renewal Apps Evaluated On Time', unit: '%' },
+                    { key: 'pct_variation_apps_evaluated_on_time', name: 'Variation Apps Evaluated On Time', unit: '%' },
+                    { key: 'pct_fir_responses_on_time', name: 'FIR Responses On Time', unit: '%' },
+                    { key: 'pct_query_responses_evaluated_on_time', name: 'Query Responses Evaluated On Time', unit: '%' },
+                    { key: 'pct_granted_within_90_days', name: 'Granted Within 90 Days', unit: '%' },
+                    { key: 'median_duration_continental', name: 'Median Duration Continental', unit: 'Days' }
+                ]
+            },
+            ct: {
+                kpis: [
+                    { key: 'pct_new_apps_evaluated_on_time', name: 'New Apps Evaluated On Time', unit: '%' },
+                    { key: 'pct_amendment_apps_evaluated_on_time', name: 'Amendment Apps Evaluated On Time', unit: '%' },
+                    { key: 'pct_gcp_inspections_on_time', name: 'GCP Inspections On Time', unit: '%' },
+                    { key: 'pct_safety_reports_assessed_on_time', name: 'Safety Reports Assessed On Time', unit: '%' },
+                    { key: 'pct_gcp_compliant', name: 'GCP Compliant', unit: '%' },
+                    { key: 'pct_registry_submissions_on_time', name: 'Registry Submissions On Time', unit: '%' },
+                    { key: 'pct_capa_evaluated_on_time', name: 'CAPA Evaluated On Time', unit: '%' },
+                    { key: 'avg_turnaround_time', name: 'Average Turnaround Time', unit: 'Days' }
+                ]
+            },
+            gmp: {
+                kpis: [
+                    { key: 'pct_facilities_inspected_on_time', name: 'Facilities Inspected On Time', unit: '%' },
+                    { key: 'pct_complaint_inspections_on_time', name: 'Complaint Inspections On Time', unit: '%' },
+                    { key: 'pct_inspections_waived_on_time', name: 'Inspections Waived On Time', unit: '%' },
+                    { key: 'pct_facilities_compliant', name: 'Facilities Compliant', unit: '%' },
+                    { key: 'pct_capa_decisions_on_time', name: 'CAPA Decisions On Time', unit: '%' },
+                    { key: 'pct_applications_completed_on_time', name: 'Applications Completed On Time', unit: '%' },
+                    { key: 'avg_turnaround_time', name: 'Average Turnaround Time', unit: 'Days' },
+                    { key: 'median_turnaround_time', name: 'Median Turnaround Time', unit: 'Days' },
+                    { key: 'pct_reports_published_on_time', name: 'Reports Published On Time', unit: '%' }
+                ]
+            }
+        };
+
+        let trendChart = null;
+
+        // Main initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            populateYearFilter();
+            setupEventListeners();
+            switchTab('ma');
+        });
+
+        function populateYearFilter() {
+            const years = new Set();
+            Object.values(allData).forEach(data => {
+                data.forEach(item => {
+                    if (item.quarter) {
+                        years.add(item.quarter.split('Q')[0]);
+                    }
+                });
+            });
+            
+            const yearFilter = document.getElementById('year-filter');
+            const sortedYears = [...years].sort((a, b) => b - a);
+            yearFilter.innerHTML = '<option value="">All Years</option>' + 
+                sortedYears.map(year => `<option value="${year}">${year}</option>`).join('');
+        }
+
+        function switchTab(process) {
+            // Update UI
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(`${process}-tab`).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${process}"]`).classList.add('active');
+            
+            // Update table
+            updateKpiTable(process);
+        }
+
+        function updateKpiTable(process) {
+            const year = document.getElementById('year-filter').value;
+            const data = year ? allData[process].filter(d => d.quarter?.startsWith(year)) : allData[process];
+            const tableBody = document.getElementById(`${process}-kpi-table`);
+            
+            tableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center">No data available for selected filter</td></tr>';
+                return;
+            }
+            
+            // Find latest quarter data
+            const latestQuarter = data.reduce((max, d) => d.quarter > max ? d.quarter : max, '');
+            const latestData = data.find(d => d.quarter === latestQuarter) || {};
+            
+            // Find previous quarter for comparison
+            const prevQuarter = data
+                .filter(d => d.quarter < latestQuarter)
+                .reduce((max, d) => d.quarter > max ? d.quarter : max, '');
+            const prevData = data.find(d => d.quarter === prevQuarter) || {};
+            
+            // Populate table rows
+            kpiConfig[process].kpis.forEach(kpi => {
+                const value = latestData[kpi.key] ?? null;
+                const prevValue = prevData[kpi.key] ?? null;
+                
+                // Determine status color
+                let statusClass = '';
+                let displayValue = 'N/A';
+                
+                if (value !== null) {
+                    displayValue = kpi.unit === '%' ? value.toFixed(2) : value;
+                    
+                    if (kpi.unit === '%') {
+                        if (value < 70) statusClass = 'bg-red-100 text-red-800';
+                        else if (value < 90) statusClass = 'bg-orange-100 text-orange-800';
+                        else statusClass = 'bg-green-100 text-green-800';
+                    }
+                }
+                
+                // Determine comment
+                let comment = 'N/A';
+                if (value !== null && prevValue !== null) {
+                    comment = value > prevValue ? 'Improved' : 'Not Improved';
+                } else if (value !== null && prevValue === null && prevQuarter) {
+                    comment = 'No previous data';
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-3">${kpi.name}</td>
+                    <td class="p-3">${kpi.unit}</td>
+                    <td class="p-3 status-cell ${statusClass}" 
+                        onclick="showTrendChart('${process}', '${kpi.key}', '${kpi.name}', '${kpi.unit}')">
+                        ${displayValue}
+                    </td>
+                    <td class="p-3">${comment}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function showTrendChart(process, kpiKey, kpiName, kpiUnit) {
+            const modal = document.getElementById('trend-modal');
+            const title = document.getElementById('modal-title');
+            const canvas = document.getElementById('trend-chart');
+            
+            // First show the modal to ensure canvas exists
+            modal.classList.remove('hidden');
+            
+            // Then verify canvas exists
+            if (!canvas) {
+                console.error('Trend chart canvas not found');
+                return;
+            }
+            
+            // Destroy previous chart if exists
+            if (trendChart) {
+                trendChart.destroy();
+                trendChart = null;
+            }
+            
+            // Get all data for this KPI
+            const data = allData[process];
+            const labels = data.map(d => d.quarter);
+            const values = data.map(d => d[kpiKey] ?? null);
+            
+            // Determine line color based on latest value
+            const latestValue = values[values.length - 1] || 0;
+            let lineColor = '#3b82f6'; // blue
+            if (kpiUnit === '%') {
+                if (latestValue < 70) lineColor = '#ef4444'; // red
+                else if (latestValue < 90) lineColor = '#f97316'; // orange
+                else lineColor = '#22c55e'; // green
+            }
+            
+            // Create new chart
+            const ctx = canvas.getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: kpiName,
+                        data: values,
+                        borderColor: lineColor,
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: false,
+                        pointBackgroundColor: values.map(v => v === null ? '#9ca3af' : lineColor),
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${kpiName}: ${context.raw !== null ? context.raw.toFixed(2) : 'N/A'}${kpiUnit}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: kpiUnit === '%' ? 100 : undefined,
+                            title: { display: true, text: kpiUnit }
+                        },
+                        x: {
+                            title: { display: true, text: 'Quarter' },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Update modal title
+            title.textContent = `${kpiName} Trend`;
+        }
+
+        function closeTrendModal() {
+            document.getElementById('trend-modal').classList.add('hidden');
+            if (trendChart) {
+                trendChart.destroy();
+                trendChart = null;
+            }
+        }
+
+        function setupEventListeners() {
+            // Tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+            
+            // Year filter
+            document.getElementById('year-filter').addEventListener('change', () => {
+                const activeTab = document.querySelector('.tab-content:not(.hidden)').id.replace('-tab', '');
+                updateKpiTable(activeTab);
+            });
+        }
+
+        // Make functions available globally
+        window.showTrendChart = showTrendChart;
+        window.closeTrendModal = closeTrendModal;
+    </script>
+</body>
+</html>

@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Drug Authority - Regulatory KPI Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { light: '#2E7D32', dark: '#4CAF50' },
+                        secondary: { light: '#1B5E20', dark: '#388E3C' },
+                        accent: { light: '#3B82F6', dark: '#2563EB' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'tab-active': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    },
+                    animation: {
+                        'fadeIn': 'fadeIn 0.3s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline"></script>
+    <style>
+        .status-cell { 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+        }
+        .status-cell:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .loading-spinner {
+            border: 3px solid rgba(46, 125, 50, 0.2);
+            border-top: 3px solid #2E7D32;
+            width: 36px; height: 36px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .chart-container { height: 70vh; min-height: 500px; }
+        .value-cell { font-weight: 600; }
+        .value-cell.good { color: #2E7D32; }
+        .dark .value-cell.good { color: #4CAF50; }
+        .value-cell.warning { color: #F59E0B; }
+        .value-cell.critical { color: #DC2626; }
+        
+        /* Enhanced tab styles */
+        .tab-btn {
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        .tab-btn:not(.active) {
+            opacity: 0.8;
+        }
+        .tab-btn:hover:not(.active) {
+            transform: translateY(-2px);
+            opacity: 1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .tab-btn.active {
+            background-color: rgba(46, 125, 50, 0.1);
+            border-color: #2E7D32;
+            color: #2E7D32;
+        }
+        .dark .tab-btn.active {
+            background-color: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        /* Enhanced table styling */
+        .kpi-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        
+        .kpi-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+        }
+        
+        .dark .kpi-table thead th {
+            background-color: #1e293b;
+            border-bottom-color: #334155;
+        }
+        
+        .kpi-cell {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s ease;
+        }
+        
+        .dark .kpi-cell {
+            border-bottom-color: #334155;
+        }
+        
+        .kpi-table tbody tr:hover .kpi-cell {
+            background-color: #f1f5f9;
+        }
+        
+        .dark .kpi-table tbody tr:hover .kpi-cell {
+            background-color: #1e293b;
+        }
+        
+        .kpi-cell:first-child {
+            border-left: 1px solid #e2e8f0;
+            border-top-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.5rem;
+        }
+        
+        .kpi-cell:last-child {
+            border-right: 1px solid #e2e8f0;
+            border-top-right-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+        
+        .dark .kpi-cell:first-child {
+            border-left-color: #334155;
+        }
+        
+        .dark .kpi-cell:last-child {
+            border-right-color: #334155;
+        }
+        
+        /* Status badge styling */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Landing page styles */
+        .landing-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .landing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .instruction-step {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+        .instruction-step:before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: #2E7D32;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .dark .instruction-step:before {
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
+    <!-- Landing Page (shown by default) -->
+    <div id="landing-page" class="min-h-screen flex flex-col">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
+            <div class="text-center mb-12">
+                <img src="static/logo.png" alt="NDA Logo" class="mx-auto mb-6 h-32 w-32">
+                <h1 class="text-4xl font-bold text-primary-light dark:text-primary-dark mb-4">Regulatory KPI Dashboard</h1>
+                <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                    Monitor and analyze key performance indicators for drug regulation processes
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-12">
+                <div class="landing-card bg-white dark:bg-gray-800 rounded-xl p-8">
+                    <h2 class="text-2xl font-bold mb-4 text-primary-light dark:text-primary-dark">About the Dashboard</h2>
+                    <p class="mb-6">
+                        This dashboard provides real-time insights into the National Drug Authority's regulatory performance across three key areas:
+                        Marketing Authorization, Clinical Trials, and GMP Compliance.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <svg class="h-6 w-6 text-primary-light dark:text-primary-dark mr-2 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Track performance metrics over time</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-6 w-6 text-primary-light dark:text-primary-dark mr-2 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Visualize trends with interactive charts</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-6 w-6 text-primary-light dark:text-primary-dark mr-2 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Filter data by year and process type</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="landing-card bg-white dark:bg-gray-800 rounded-xl p-8">
+                    <h2 class="text-2xl font-bold mb-4 text-primary-light dark:text-primary-dark">How to Use</h2>
+                    <div class="space-y-6" style="counter-reset: step;">
+                        <div class="instruction-step">
+                            <h3 class="text-lg font-semibold mb-2">Select a Year</h3>
+                            <p>Use the year dropdown to view data for a specific reporting period.</p>
+                        </div>
+                        <div class="instruction-step">
+                            <h3 class="text-lg font-semibold mb-2">Choose a Process</h3>
+                            <p>Switch between Marketing Authorization, Clinical Trials, and GMP Compliance tabs.</p>
+                        </div>
+                        <div class="instruction-step">
+                            <h3 class="text-lg font-semibold mb-2">View Trends</h3>
+                            <p>Click on any trend chart to see a detailed view of the full historical data.</p>
+                        </div>
+                        <div class="instruction-step">
+                            <h3 class="text-lg font-semibold mb-2">Interpret Status</h3>
+                            <p>Check the status indicators to quickly identify areas needing attention.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button id="enter-dashboard-btn" class="px-8 py-4 bg-primary-light dark:bg-primary-dark text-white font-bold rounded-lg text-lg hover:bg-secondary-light dark:hover:bg-secondary-dark transition-colors shadow-lg transform hover:scale-105">
+                    Enter KPI Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page (hidden by default) -->
+    <div id="dashboard-page" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <img src="static/logo.png" alt="NDA Logo" class="mx-auto mb-4 h-24 w-24">
+            <h1 class="text-3xl font-bold text-primary-light dark:text-primary-dark">National Drug Authority</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">Regulatory KPI Dashboard</p>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-xl">
+                <div class="flex flex-col items-center">
+                    <div class="loading-spinner mb-4"></div>
+                    <span class="text-lg font-medium">Loading data...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-col sm:flex-row gap-4 mb-8">
+            <div class="flex-1">
+                <label for="year-filter" class="block text-sm font-medium mb-1">Year</label>
+                <select id="year-filter" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark focus:border-transparent">
+                    <option value="">Loading years...</option>
+                </select>
+            </div>
+            <div class="flex-1">
+                <label class="block text-sm font-medium mb-1">Process</label>
+                <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button class="tab-btn px-6 py-3 text-lg rounded-l-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 active" data-tab="ma">
+                        Marketing Authorization
+                    </button>
+                    <button class="tab-btn px-6 py-3 text-lg border-t border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800" data-tab="ct">
+                        Clinical Trials
+                    </button>
+                    <button class="tab-btn px-6 py-3 text-lg rounded-r-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800" data-tab="gmp">
+                        GMP Compliance
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Content -->
+        <div id="ma-tab" class="tab-content bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <h2 class="text-xl font-semibold p-6 pb-0">Marketing Authorization KPIs</h2>
+            <div class="overflow-x-auto p-6 pt-0">
+                <table class="kpi-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-4 text-left">KPI Name</th>
+                            <th class="px-6 py-4 text-left">Quarter</th>
+                            <th class="px-6 py-4 text-left">Value</th>
+                            <th class="px-6 py-4 text-left">Status</th>
+                            <th class="px-6 py-4 text-left">Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ma-kpi-table" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center">Select a year to view data</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="ct-tab" class="tab-content hidden bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <h2 class="text-xl font-semibold p-6 pb-0">Clinical Trials KPIs</h2>
+            <div class="overflow-x-auto p-6 pt-0">
+                <table class="kpi-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-4 text-left">KPI Name</th>
+                            <th class="px-6 py-4 text-left">Quarter</th>
+                            <th class="px-6 py-4 text-left">Value</th>
+                            <th class="px-6 py-4 text-left">Status</th>
+                            <th class="px-6 py-4 text-left">Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ct-kpi-table" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center">Select a year to view data</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="gmp-tab" class="tab-content hidden bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <h2 class="text-xl font-semibold p-6 pb-0">GMP Compliance KPIs</h2>
+            <div class="overflow-x-auto p-6 pt-0">
+                <table class="kpi-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-4 text-left">KPI Name</th>
+                            <th class="px-6 py-4 text-left">Quarter</th>
+                            <th class="px-6 py-4 text-left">Value</th>
+                            <th class="px-6 py-4 text-left">Status</th>
+                            <th class="px-6 py-4 text-left">Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gmp-kpi-table" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center">Select a year to view data</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Trend Modal -->
+        <div id="trend-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 id="modal-title" class="text-xl font-semibold"></h3>
+                    <button id="close-trend-modal" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors">
+                        Close
+                    </button>
+                </div>
+                <div class="p-6 flex-1 min-h-0">
+                    <div class="chart-container">
+                        <canvas id="trend-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL - points to the FastAPI backend
+        const API_BASE_URL = window.location.origin;
+        
+        // Store full dataset for trend charts
+        const fullDatasetCache = {
+            ma: null,
+            ct: null,
+            gmp: null
+        };
+
+        // KPI Name Mapping with complete descriptions
+        const kpiNameMap = {
+            // Marketing Authorization KPIs
+            'pct_new_apps_evaluated': 'Percentage of new applications for marketing authorization of medicines evaluated within a specified time',
+            'pct_renewals_evaluated': 'Percentage of renewals applications for marketing authorization of medicines evaluated within a specified time',
+            'pct_variations_evaluated': 'Percentage of applications for variation of registered medicinal products evaluated within a specified time',
+            'pct_fir_responses': 'Percentage of further information requests (FIR) responses received within a specified timeline',
+            'pct_query_responses': 'Percentage of query responses/additional data evaluated within a specified time',
+            'pct_ma_granted_90days': 'Percentage of medical products and technologies granted MA within 90 working days',
+            'median_continent_apps': 'Median timelines taken by NRAs to process continentally reviewed application from the time it is received to decision',
+            
+            // Clinical Trials KPIs
+            'pct_new_ct_apps': 'Percentage of new clinical trial applications evaluated within a specified timeline',
+            'pct_ct_amendments': 'Percentage of clinical trial amendments evaluated within specified timelines',
+            'pct_ct_inspected': 'Percentage of approved & ongoing clinical trials inspected as per the GCP plan',
+            'pct_safety_reports': 'Percentage of field and safety reports assessed within a specified timeline',
+            'pct_ct_compliant': 'Percentage of clinical trials compliant with GCP requirements',
+            'pct_ct_listed': 'Percentage of approved clinical trials listed in National registry',
+            'pct_ct_capa': 'Percentage of Corrective and Preventive Action (CAPA) evaluated within the specified timeline',
+            'avg_ct_processing_time': 'Average turnaround time to complete evaluation of CT applications',
+            
+            // GMP Compliance KPIs
+            'pct_gmp_inspected': 'Percentage of pharmaceutical manufacturing facilities inspected for GMP as per plan',
+            'pct_complaint_inspections': 'Percentage of complaint-triggered GMP inspections conducted at pharmaceutical manufacturing facilities',
+            'pct_gmp_waived': 'Percentage of GMP on-site inspections waived for pharmaceutical manufacturing facilities within set timelines',
+            'pct_gmp_compliant': 'Percentage of pharmaceutical manufacturing facilities compliant with GMP requirements',
+            'pct_capa_decisions': 'Percentage of final CAPA decisions issued within a specified timeline',
+            'pct_gmp_apps_completed': 'Percentage of GMP inspection applications for pharmaceutical manufacturing facilities completed within the set timeline',
+            'avg_gmp_processing_time': 'Average turnaround time (in days) to complete GMP applications for pharmaceutical manufacturing facilities',
+            'median_gmp_processing_time': 'Median turnaround time (in days) to complete GMP inspection applications for pharmaceutical manufacturing facilities',
+            'pct_gmp_reports_published': 'Percentage of GMP inspection reports published on the regulator\'s website within a specified timeline'
+        };
+
+        // Extract year from quarter string (e.g., "2022Q1" -> 2022)
+        function extractYearFromQuarter(quarter) {
+            if (!quarter) return null;
+            const yearMatch = quarter.match(/^(\d{4})/);
+            return yearMatch ? parseInt(yearMatch[1]) : null;
+        }
+
+        // Format quarter for display (e.g., "2022Q1" -> "Q1 2022")
+        function formatQuarterDisplay(quarter) {
+            if (!quarter) return 'N/A';
+            const year = quarter.substring(0, 4);
+            const q = quarter.substring(4);
+            return `${q} ${year}`;
+        }
+
+        // Initialize the dashboard
+        async function initDashboard() {
+            showLoading(true);
+            
+            try {
+                // First load available years and full datasets
+                await Promise.all([
+                    loadAvailableYears(),
+                    cacheFullDataset('ma'),
+                    cacheFullDataset('ct'),
+                    cacheFullDataset('gmp')
+                ]);
+                
+                // Then set up event listeners
+                setupEventListeners();
+            } catch (error) {
+                console.error("Dashboard initialization failed:", error);
+                alert("Failed to initialize dashboard. Please check console for details.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Cache full dataset for a process
+        async function cacheFullDataset(process) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/${process}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                fullDatasetCache[process] = data;
+                console.log(`Cached full dataset for ${process}`, data);
+            } catch (error) {
+                console.error(`Failed to cache full dataset for ${process}:`, error);
+            }
+        }
+
+        // Load available years from all KPI tables
+        async function loadAvailableYears() {
+            try {
+                // We'll get years from all three endpoints and combine them
+                const endpoints = ['/ma', '/ct', '/gmp'];
+                const yearSet = new Set();
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                        if (!response.ok) continue;
+                        
+                        const data = await response.json();
+                        if (data && data.length > 0) {
+                            data.forEach(item => {
+                                const year = extractYearFromQuarter(item.quarter);
+                                if (year) yearSet.add(year);
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching years from ${endpoint}:`, error);
+                    }
+                }
+                
+                const years = Array.from(yearSet).sort((a, b) => b - a); // Sort descending
+                
+                if (years.length === 0) {
+                    document.getElementById('year-filter').innerHTML = '<option value="">No data available</option>';
+                    return;
+                }
+                
+                populateYearFilter(years);
+                
+                // Automatically select the most recent year
+                if (years.length > 0) {
+                    document.getElementById('year-filter').value = years[0];
+                }
+            } catch (error) {
+                console.error("Failed to load available years:", error);
+                document.getElementById('year-filter').innerHTML = '<option value="">Failed to load years</option>';
+            }
+        }
+
+        // Populate year filter dropdown
+        function populateYearFilter(years) {
+            const yearFilter = document.getElementById('year-filter');
+            yearFilter.innerHTML = '';
+            
+            if (years.length === 0) {
+                yearFilter.innerHTML = '<option value="">No data available</option>';
+                return;
+            }
+            
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearFilter.appendChild(option);
+            });
+        }
+
+        // Show/hide loading overlay
+        function showLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // Load KPIs for a process and year
+        async function loadKPIs(process, year) {
+            if (!year) {
+                console.warn("No year selected");
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                // Get data from cache first
+                let data = fullDatasetCache[process];
+                
+                // If not in cache, fetch fresh data
+                if (!data) {
+                    const response = await fetch(`${API_BASE_URL}/${process}`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    data = await response.json();
+                    fullDatasetCache[process] = data;
+                }
+                
+                // Filter data for the selected year
+                const filteredData = data.filter(item => {
+                    const itemYear = extractYearFromQuarter(item.quarter);
+                    return itemYear === parseInt(year);
+                });
+                
+                console.log(`Filtered data for ${year}:`, filteredData);
+                
+                renderKPITable(process, filteredData);
+            } catch (error) {
+                console.error(`Failed to fetch ${process} KPIs:`, error);
+                document.getElementById(`${process}-kpi-table`).innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-red-500">
+                            Failed to load data. Please try again later.
+                        </td>
+                    </tr>
+                `;
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Render KPI table with enhanced styling
+        function renderKPITable(process, kpis) {
+            const table = document.getElementById(`${process}-kpi-table`);
+            table.innerHTML = '';
+            
+            if (!kpis || kpis.length === 0) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center">
+                            No data available for selected year
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Get all KPI names (excluding metadata fields)
+            const kpiNames = Object.keys(kpis[0]).filter(
+                key => !['id', 'quarter', 'run_date'].includes(key)
+            );
+            
+            if (kpiNames.length === 0) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-yellow-600">
+                            No KPI metrics found in the data
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            kpiNames.forEach((kpiName, index) => {
+                // Get the most recent quarter's data for this KPI
+                const latestData = kpis.reduce((latest, current) => {
+                    return current.quarter > latest.quarter ? current : latest;
+                }, {quarter: '', [kpiName]: null});
+                
+                const value = latestData[kpiName];
+                const quarter = formatQuarterDisplay(latestData.quarter);
+                const status = determineStatus(kpiName, value);
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
+                row.innerHTML = `
+                    <td class="kpi-cell whitespace-nowrap">${kpiNameMap[kpiName] || kpiName}</td>
+                    <td class="kpi-cell whitespace-nowrap">${quarter}</td>
+                    <td class="kpi-cell whitespace-nowrap value-cell ${status}">${formatValue(kpiName, value)}</td>
+                    <td class="kpi-cell whitespace-nowrap">
+                        <span class="status-badge ${getStatusClass(status)}">${getStatusText(status)}</span>
+                    </td>
+                    <td class="kpi-cell whitespace-nowrap status-cell" data-kpi="${kpiName}" data-process="${process}">
+                        <div class="w-24 h-8" id="mini-trend-${process}-${index}"></div>
+                    </td>
+                `;
+                table.appendChild(row);
+                
+                // Create mini chart from full dataset (not filtered)
+                if (fullDatasetCache[process]) {
+                    const sortedKpis = [...fullDatasetCache[process]].sort((a, b) => a.quarter.localeCompare(b.quarter));
+                    const trendData = sortedKpis.map(kpi => kpi[kpiName]);
+                    const quarterLabels = sortedKpis.map(kpi => formatQuarterDisplay(kpi.quarter));
+                    
+                    // Create mini chart only if we have valid data
+                    if (trendData.some(v => v !== null && v !== undefined)) {
+                        createMiniChart(`mini-trend-${process}-${index}`, trendData, quarterLabels);
+                    }
+                }
+            });
+        }
+
+        // Format value based on KPI type
+        function formatValue(name, value) {
+            if (value === null || value === undefined) return 'N/A';
+            if (name.startsWith('pct_') || name.startsWith('pct')) return `${(value * 100).toFixed(1)}%`;
+            if (name.includes('time') || name.includes('duration')) return `${value} days`;
+            return value;
+        }
+
+        // Determine status based on KPI value
+        function determineStatus(kpiName, value) {
+            if (value === null || value === undefined) return 'unknown';
+            
+            // These thresholds should be adjusted based on your actual requirements
+            if (kpiName.startsWith('pct_') || kpiName.startsWith('pct')) {
+                if (value >= 0.9) return 'good';
+                if (value >= 0.7) return 'warning';
+                return 'critical';
+            }
+            
+            if (kpiName.includes('time') || kpiName.includes('duration')) {
+                if (value <= 30) return 'good';
+                if (value <= 60) return 'warning';
+                return 'critical';
+            }
+            
+            return 'good'; // Default to good for count-based KPIs
+        }
+
+        // Create mini trend chart
+        function createMiniChart(canvasId, data, labels) {
+            const container = document.getElementById(canvasId);
+            if (!container) return;
+            
+            const canvas = document.createElement('canvas');
+            container.innerHTML = '';
+            container.appendChild(canvas);
+            
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: labels || data.map((_, i) => `Q${i+1}`),
+                    datasets: [{
+                        data: data,
+                        borderColor: '#2E7D32',
+                        borderWidth: 1.5,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    scales: { 
+                        x: { 
+                            display: false,
+                            grid: {
+                                display: false
+                            }
+                        }, 
+                        y: { 
+                            display: false,
+                            grid: {
+                                display: false
+                            }
+                        } 
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // Show full trend chart (using full dataset)
+        async function showTrendChart(kpiName, process) {
+            showLoading(true);
+            
+            try {
+                // Get data from cache first
+                let kpis = fullDatasetCache[process];
+                
+                // If not in cache, fetch fresh data
+                if (!kpis) {
+                    const response = await fetch(`${API_BASE_URL}/${process}`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    kpis = await response.json();
+                    fullDatasetCache[process] = kpis;
+                }
+                
+                const sortedKpis = [...kpis].sort((a, b) => a.quarter.localeCompare(b.quarter));
+                const quarters = sortedKpis.map(kpi => formatQuarterDisplay(kpi.quarter));
+                const values = sortedKpis.map(kpi => kpi[kpiName]);
+                
+                document.getElementById('modal-title').textContent = `${kpiNameMap[kpiName] || kpiName} Trend (Full Period)`;
+                
+                const ctx = document.getElementById('trend-chart').getContext('2d');
+                
+                // Destroy previous chart if exists
+                if (window.trendChart) {
+                    window.trendChart.destroy();
+                }
+                
+                window.trendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: quarters,
+                        datasets: [{
+                            label: kpiNameMap[kpiName] || kpiName,
+                            data: values,
+                            borderColor: '#2E7D32',
+                            borderWidth: 3,
+                            backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#2E7D32',
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { 
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                }
+                            },
+                            tooltip: { 
+                                mode: 'index',
+                                intersect: false,
+                                bodyFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                titleFont: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                document.getElementById('trend-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error("Failed to load trend data:", error);
+                alert("Failed to load trend data. Please check console for details.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Helper functions
+        function getStatusClass(status) {
+            const classes = {
+                'good': 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100',
+                'warning': 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100',
+                'critical': 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100',
+                'unknown': 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+            };
+            return classes[status] || classes.unknown;
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'good': 'On Target',
+                'warning': 'Needs Attention',
+                'critical': 'Below Target',
+                'unknown': 'No Data'
+            };
+            return texts[status] || texts.unknown;
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Enter Dashboard button
+            document.getElementById('enter-dashboard-btn').addEventListener('click', function() {
+                document.getElementById('landing-page').classList.add('hidden');
+                document.getElementById('dashboard-page').classList.remove('hidden');
+                
+                // Load data for the selected year (most recent by default)
+                const year = document.getElementById('year-filter').value;
+                const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+                if (year && activeTab) {
+                    loadKPIs(activeTab, year);
+                }
+            });
+
+            // Tab switching with enhanced interaction
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const tab = this.getAttribute('data-tab');
+                    const year = document.getElementById('year-filter').value;
+                    
+                    // Update active tab with animation
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('active');
+                        b.classList.remove('scale-105');
+                    });
+                    
+                    this.classList.add('active');
+                    this.classList.add('scale-105');
+                    setTimeout(() => {
+                        this.classList.remove('scale-105');
+                    }, 300);
+                    
+                    // Show correct tab content
+                    document.querySelectorAll('.tab-content').forEach(c => {
+                        c.classList.add('hidden');
+                        c.classList.remove('animate-fadeIn');
+                    });
+                    const activeTab = document.getElementById(`${tab}-tab`);
+                    activeTab.classList.remove('hidden');
+                    activeTab.classList.add('animate-fadeIn');
+                    
+                    // Load data if year is selected
+                    if (year) {
+                        await loadKPIs(tab, year);
+                    }
+                });
+            });
+            
+            // Year filter
+            document.getElementById('year-filter').addEventListener('change', async function() {
+                const year = this.value;
+                const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+                
+                if (year) {
+                    await loadKPIs(activeTab, year);
+                }
+            });
+            
+            // Trend modal
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.status-cell')) {
+                    const cell = e.target.closest('.status-cell');
+                    const kpiName = cell.getAttribute('data-kpi');
+                    const process = cell.getAttribute('data-process');
+                    showTrendChart(kpiName, process);
+                }
+            });
+            
+            document.getElementById('close-trend-modal').addEventListener('click', function() {
+                document.getElementById('trend-modal').classList.add('hidden');
+            });
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
