@@ -1,0 +1,99 @@
+import random
+import datetime
+import mysql.connector
+from faker import Faker
+
+fake = Faker()
+start_year = 2023
+end_year = 2025
+
+def quarter_months(q):
+    return {
+        1: [1, 2, 3],
+        2: [4, 5, 6],
+        3: [7, 8, 9],
+        4: [10, 11, 12]
+    }[q]
+
+def random_date_in_quarter(year, quarter):
+    month = random.choice(quarter_months(quarter))
+    day = random.randint(1, 28)
+    hour = random.randint(0, 23)
+    minute = random.randint(0, 59)
+    return datetime.datetime(year, month, day, hour, minute)
+
+def connect_db():
+    return mysql.connector.connect(
+        host='localhost',
+        user='kpi_user',
+        password='kpipassword',
+        database='kpi_db'
+    )
+
+def insert_log(cursor, table, record):
+    placeholders = ", ".join(["%s"] * len(record))
+    columns = ", ".join(record.keys())
+    sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
+    cursor.execute(sql, list(record.values()))
+
+def generate_logs(cursor, table, config, total_per_year=400):
+    for year in range(start_year, end_year + 1):
+        for quarter in range(1, 5):
+            for _ in range(total_per_year // 4):
+                created_at = random_date_in_quarter(year, quarter)
+                record = {
+                    'application_id' if 'application_id' in config['columns'] else 'facility_id': fake.uuid4(),
+                    config['type_col']: random.choice(config['types']),
+                    'event_type': random.choice(config['event_types']),
+                    'status': random.choice(config['statuses']),
+                    config['compliance_col']: random.choices([True, False], weights=[0.7, 0.3])[0],
+                    'duration_days': random.randint(*config['duration_range']),
+                    'officer_id': fake.uuid4(),
+                    'created_at': created_at
+                }
+                insert_log(cursor, table, record)
+
+def main():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    print("Generating MA logs...")
+    generate_logs(cursor, 'ma_logs', {
+        'columns': ['application_id'],
+        'type_col': 'application_type',
+        'types': ['new', 'renewal', 'variation'],
+        'event_types': ['received', 'evaluated', 'granted', 'fir_requested', 'fir_response_received', 'query_received', 'query_evaluated'],
+        'statuses': ['on_time', 'delayed', 'within_90_days', None],
+        'compliance_col': 'is_continental',
+        'duration_range': (1, 180)
+    })
+
+    print("Generating CT logs...")
+    generate_logs(cursor, 'ct_logs', {
+        'columns': ['application_id'],
+        'type_col': 'application_type',
+        'types': ['new', 'amendment'],
+        'event_types': ['received', 'evaluated', 'gcp_inspected', 'safety_report_received', 'safety_report_assessed', 'registry_submission', 'capa_received', 'capa_evaluated'],
+        'statuses': ['on_time', 'delayed', None],
+        'compliance_col': 'is_compliant',
+        'duration_range': (1, 120)
+    })
+
+    print("Generating GMP logs...")
+    generate_logs(cursor, 'gmp_logs', {
+        'columns': ['facility_id'],
+        'type_col': 'inspection_type',
+        'types': ['planned', 'complaint', 'waived'],
+        'event_types': ['inspection_conducted', 'inspection_waived', 'report_published', 'capa_received', 'capa_reviewed', 'application_received', 'application_processed'],
+        'statuses': ['on_time', 'delayed', None],
+        'compliance_col': 'is_compliant',
+        'duration_range': (1, 150)
+    })
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("Dummy data inserted successfully.")
+
+if __name__ == "__main__":
+    main()

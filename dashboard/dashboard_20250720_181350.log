@@ -1,0 +1,46 @@
+2025-07-20 18:13:50,061 - main - INFO - Starting new application run, logging to dashboard_20250720_181350.log
+2025-07-20 18:13:50,066 - main - INFO - Environment variables loaded
+2025-07-20 18:13:50,066 - main - INFO - Attempting to establish database connection
+2025-07-20 18:13:50,231 - main - INFO - Database connection established successfully
+2025-07-20 18:13:50,241 - main - INFO - CORS middleware configured
+2025-07-20 18:13:57,934 - main - INFO - Serving root endpoint (index.html)
+2025-07-20 18:13:58,381 - main - INFO - Fetching available years
+2025-07-20 18:13:58,482 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 18:13:58,483 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 18:13:58,483 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 18:13:58,515 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:13:58,516 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-20 18:13:58,532 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:13:58,540 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:13:58,542 - main - INFO - Successfully processed MA KPIs
+2025-07-20 18:13:58,544 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-20 18:13:58,552 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:13:58,558 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:13:58,560 - main - INFO - Successfully processed CT KPIs
+2025-07-20 18:13:58,561 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-20 18:13:58,574 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:13:58,582 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:13:58,585 - main - INFO - Successfully processed GMP KPIs
+2025-07-20 18:13:58,587 - main - INFO - Fetching available years
+2025-07-20 18:13:58,605 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:14:05,706 - main - INFO - Exporting KPI data for years: 2024, processes: ma,ct,gmp
+2025-07-20 18:14:05,706 - main - ERROR - Failed to export data by year: name 'BytesIO' is not defined
+Traceback (most recent call last):
+  File "C:\Users\alber\OneDrive\Data Engineering\Projects\kpi-module\dashboard\main.py", line 358, in export_data_by_years
+    output = BytesIO()
+             ^^^^^^^
+NameError: name 'BytesIO' is not defined. Did you mean: 'bytes'?
+2025-07-20 18:14:18,281 - main - INFO - Exporting KPI data for years: 2024,2023,2022, processes: ma,ct,gmp
+2025-07-20 18:14:18,282 - main - ERROR - Failed to export data by year: name 'BytesIO' is not defined
+Traceback (most recent call last):
+  File "C:\Users\alber\OneDrive\Data Engineering\Projects\kpi-module\dashboard\main.py", line 358, in export_data_by_years
+    output = BytesIO()
+             ^^^^^^^
+NameError: name 'BytesIO' is not defined. Did you mean: 'bytes'?
+2025-07-20 18:14:19,408 - main - INFO - Exporting all KPI data to Excel
+2025-07-20 18:14:19,447 - main - ERROR - Failed to export data: name 'BytesIO' is not defined
+Traceback (most recent call last):
+  File "C:\Users\alber\OneDrive\Data Engineering\Projects\kpi-module\dashboard\main.py", line 320, in export_all_data
+    output = BytesIO()
+             ^^^^^^^
+NameError: name 'BytesIO' is not defined. Did you mean: 'bytes'?

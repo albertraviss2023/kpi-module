@@ -1,0 +1,109 @@
+2025-07-20 18:27:50,017 - main - INFO - Starting new application run, logging to dashboard_20250720_182750.log
+2025-07-20 18:27:50,019 - main - INFO - Environment variables loaded
+2025-07-20 18:27:50,020 - main - INFO - Attempting to establish database connection
+2025-07-20 18:27:50,184 - main - INFO - Database connection established successfully
+2025-07-20 18:27:50,193 - main - INFO - CORS middleware configured
+2025-07-20 18:27:50,275 - main - INFO - Serving root endpoint (index.html)
+2025-07-20 18:27:51,044 - main - INFO - Fetching available years
+2025-07-20 18:27:51,213 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 18:27:51,214 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 18:27:51,214 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 18:27:51,284 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:27:51,286 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-20 18:27:51,314 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:27:51,327 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:27:51,334 - main - INFO - Successfully processed MA KPIs
+2025-07-20 18:27:51,336 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-20 18:27:51,359 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:27:51,369 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:27:51,371 - main - INFO - Successfully processed CT KPIs
+2025-07-20 18:27:51,374 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-20 18:27:51,411 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:27:51,422 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:27:51,435 - main - INFO - Successfully processed GMP KPIs
+2025-07-20 18:27:51,437 - main - INFO - Fetching available years
+2025-07-20 18:27:51,461 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:27:54,822 - main - INFO - Serving root endpoint (index.html)
+2025-07-20 18:27:55,051 - main - INFO - Fetching available years
+2025-07-20 18:27:55,083 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:27:55,085 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-20 18:27:55,102 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:27:55,112 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:27:55,115 - main - INFO - Successfully processed MA KPIs
+2025-07-20 18:27:55,117 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-20 18:27:55,135 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:27:55,146 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:27:55,149 - main - INFO - Successfully processed CT KPIs
+2025-07-20 18:27:55,151 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-20 18:27:55,165 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:27:55,182 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:27:55,186 - main - INFO - Successfully processed GMP KPIs
+2025-07-20 18:27:55,189 - main - INFO - Fetching available years
+2025-07-20 18:27:55,213 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:28:04,294 - main - INFO - Exporting KPI data for years: 2024, processes: ma,ct,gmp
+2025-07-20 18:28:04,499 - main - INFO - Successfully generated Excel file for selected years
+2025-07-20 18:28:57,766 - main - INFO - Exporting KPI data for years: 2024,2023, processes: ma,ct,gmp
+2025-07-20 18:28:57,927 - main - INFO - Successfully generated Excel file for selected years
+2025-07-20 18:33:58,299 - main - INFO - Serving root endpoint (index.html)
+2025-07-20 18:33:58,629 - main - INFO - Fetching available years
+2025-07-20 18:33:58,650 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:33:58,652 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-20 18:33:58,667 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:33:58,677 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:33:58,679 - main - INFO - Successfully processed MA KPIs
+2025-07-20 18:33:58,680 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-20 18:33:58,690 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:33:58,695 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:33:58,697 - main - INFO - Successfully processed CT KPIs
+2025-07-20 18:33:58,698 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-20 18:33:58,708 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:33:58,712 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:33:58,714 - main - INFO - Successfully processed GMP KPIs
+2025-07-20 18:33:58,715 - main - INFO - Fetching available years
+2025-07-20 18:33:58,728 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:37:03,497 - main - INFO - Serving root endpoint (index.html)
+2025-07-20 18:37:03,887 - main - INFO - Fetching available years
+2025-07-20 18:37:03,918 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:37:03,920 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-20 18:37:03,939 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:37:03,947 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:37:03,950 - main - INFO - Successfully processed MA KPIs
+2025-07-20 18:37:03,952 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-20 18:37:03,966 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:37:03,974 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:37:03,977 - main - INFO - Successfully processed CT KPIs
+2025-07-20 18:37:03,979 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-20 18:37:03,993 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:37:04,002 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:37:04,005 - main - INFO - Successfully processed GMP KPIs
+2025-07-20 18:37:04,008 - main - INFO - Fetching available years
+2025-07-20 18:37:04,027 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:37:18,354 - main - INFO - Exporting KPI data for years: 2024, processes: ma,ct,gmp
+2025-07-20 18:37:18,435 - main - INFO - Successfully generated Excel file for selected years
+2025-07-20 18:37:24,430 - main - INFO - Exporting KPI data for years: 2024,2023,2022, processes: ma,ct,gmp
+2025-07-20 18:37:24,630 - main - INFO - Successfully generated Excel file for selected years
+2025-07-20 18:37:40,941 - main - INFO - Exporting KPI data for years: 2024,2023,2022, processes: ma,ct,gmp
+2025-07-20 18:37:41,118 - main - INFO - Successfully generated Excel file for selected years
+2025-07-20 18:37:47,356 - main - INFO - Exporting KPI data for years: 2024,2022, processes: ma,ct,gmp
+2025-07-20 18:37:47,486 - main - INFO - Successfully generated Excel file for selected years
+2025-07-20 18:38:24,379 - main - INFO - Serving root endpoint (index.html)
+2025-07-20 18:38:24,669 - main - INFO - Fetching available years
+2025-07-20 18:38:24,693 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:38:24,695 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-20 18:38:24,707 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:38:24,719 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:38:24,722 - main - INFO - Successfully processed MA KPIs
+2025-07-20 18:38:24,723 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-20 18:38:24,734 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:38:24,743 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:38:24,745 - main - INFO - Successfully processed CT KPIs
+2025-07-20 18:38:24,747 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-20 18:38:24,761 - main - INFO - Starting dataframe cleaning process
+2025-07-20 18:38:24,772 - main - INFO - Dataframe cleaning completed successfully
+2025-07-20 18:38:24,775 - main - INFO - Successfully processed GMP KPIs
+2025-07-20 18:38:24,777 - main - INFO - Fetching available years
+2025-07-20 18:38:24,796 - main - INFO - Retrieved 3 unique years
+2025-07-20 18:46:36,174 - main - INFO - Exporting KPI data for years: 2024,2023,2022, processes: ma,ct,gmp
+2025-07-20 18:46:36,350 - main - INFO - Successfully generated Excel file for selected years
+2025-07-20 18:49:18,807 - main - INFO - Exporting KPI data for years: 2024,2023,2022, processes: ma,ct,gmp
+2025-07-20 18:49:18,964 - main - INFO - Successfully generated Excel file for selected years

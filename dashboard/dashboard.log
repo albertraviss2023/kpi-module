@@ -2457,3 +2457,87 @@
 2025-07-20 01:54:02,344 - mysql.connector - INFO - package: mysql.connector.plugins
 2025-07-20 01:54:02,345 - mysql.connector - INFO - plugin_name: caching_sha2_password
 2025-07-20 01:54:02,345 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 02:02:34,557 - main - INFO - Database connection established successfully
+2025-07-20 02:02:39,621 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 02:02:39,622 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 02:02:39,623 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 02:58:08,079 - main - INFO - Database connection established successfully
+2025-07-20 02:58:11,927 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 02:58:11,929 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 02:58:11,929 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 03:18:25,784 - main - INFO - Database connection established successfully
+2025-07-20 03:19:48,682 - main - INFO - Database connection established successfully
+2025-07-20 03:20:55,215 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 03:20:55,216 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 03:20:55,216 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 14:11:26,910 - main - INFO - Database connection established successfully
+2025-07-20 14:11:31,258 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 14:11:31,259 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 14:11:31,259 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 15:25:24,109 - main - ERROR - Failed to fetch available years: (mysql.connector.errors.ProgrammingError) 1054 (42S22): Unknown column 'created_at' in 'field list'
+[SQL: SELECT DISTINCT YEAR(created_at) as year FROM kpi_ma WHERE created_at IS NOT NULL]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-07-20 15:25:24,174 - main - ERROR - Failed to fetch available years: (mysql.connector.errors.ProgrammingError) 1054 (42S22): Unknown column 'created_at' in 'field list'
+[SQL: SELECT DISTINCT YEAR(created_at) as year FROM kpi_ma WHERE created_at IS NOT NULL]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-07-20 15:28:00,965 - main - INFO - Database connection established successfully
+2025-07-20 15:28:01,984 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 15:28:01,985 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 15:28:01,985 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 15:28:02,009 - main - ERROR - Failed to fetch available years: (mysql.connector.errors.ProgrammingError) 1054 (42S22): Unknown column 'created_at' in 'field list'
+[SQL: SELECT DISTINCT YEAR(created_at) as year FROM kpi_ma WHERE created_at IS NOT NULL]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-07-20 15:28:02,144 - main - ERROR - Failed to fetch available years: (mysql.connector.errors.ProgrammingError) 1054 (42S22): Unknown column 'created_at' in 'field list'
+[SQL: SELECT DISTINCT YEAR(created_at) as year FROM kpi_ma WHERE created_at IS NOT NULL]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-07-20 15:28:12,047 - main - ERROR - Failed to export data: No module named 'xlsxwriter'
+2025-07-20 15:34:02,005 - main - INFO - Database connection established successfully
+2025-07-20 15:34:07,145 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 15:34:07,146 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 15:34:07,147 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 15:34:23,848 - main - ERROR - Failed to export data by year: No module named 'xlsxwriter'
+2025-07-20 15:34:31,611 - main - ERROR - Failed to export data by year: No module named 'xlsxwriter'
+2025-07-20 15:34:34,706 - main - ERROR - Failed to export data: No module named 'xlsxwriter'
+2025-07-20 15:35:57,111 - main - ERROR - Failed to export data by year: No module named 'xlsxwriter'
+2025-07-20 15:55:28,542 - main - INFO - Database connection established successfully
+2025-07-20 15:55:34,249 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 15:55:34,249 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 15:55:34,250 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 15:55:37,649 - main - ERROR - Failed to export data: No module named 'xlsxwriter'
+2025-07-20 15:56:30,802 - main - ERROR - Failed to export data: No module named 'xlsxwriter'
+2025-07-20 15:56:44,956 - main - INFO - Database connection established successfully
+2025-07-20 15:56:47,912 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 15:56:47,912 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 15:56:47,913 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 16:02:28,436 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 16:02:28,436 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 16:02:28,437 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 16:02:28,459 - main - INFO - Database connection established successfully
+2025-07-20 16:03:18,389 - main - INFO - Database connection established successfully
+2025-07-20 16:03:40,260 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 16:03:40,260 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 16:03:40,262 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 16:38:48,904 - main - INFO - Database connection established successfully
+2025-07-20 16:38:51,962 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 16:38:51,962 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 16:38:51,963 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 17:47:42,985 - main - INFO - Database connection established successfully
+2025-07-20 17:47:44,179 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 17:47:44,180 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 17:47:44,180 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 17:48:08,053 - main - ERROR - Failed to export data: No module named 'xlsxwriter'
+2025-07-20 17:48:13,374 - main - ERROR - Failed to export data: No module named 'xlsxwriter'
+2025-07-20 17:48:30,063 - main - ERROR - Failed to export data by year: No module named 'xlsxwriter'
+2025-07-20 17:48:33,166 - main - ERROR - Failed to export data: No module named 'xlsxwriter'
+2025-07-20 17:51:43,826 - main - ERROR - Failed to export data by year: No module named 'xlsxwriter'
+2025-07-20 17:58:35,605 - main - ERROR - Failed to export data by year: No module named 'xlsxwriter'
+2025-07-20 18:03:43,911 - main - INFO - Database connection established successfully
+2025-07-20 18:03:52,378 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 18:03:52,379 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 18:03:52,380 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 18:05:17,582 - main - INFO - Database connection established successfully
+2025-07-20 18:05:25,632 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-20 18:05:25,633 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-20 18:05:25,633 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-20 18:05:36,613 - main - ERROR - Failed to export data by year: No module named 'xlsxwriter'
+2025-07-20 18:08:06,035 - main - ERROR - Failed to export data by year: No module named 'xlsxwriter'
