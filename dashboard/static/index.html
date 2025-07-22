@@ -1,1884 +1,1246 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>National Drug Authority - Regulatory KPI Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: { 
-                            light: '#2E7D32', 
-                            dark: '#4CAF50' 
-                        },
-                        secondary: { 
-                            light: '#1B5E20', 
-                            dark: '#388E3C' 
-                        },
-                        accent: { 
-                            light: '#3B82F6', 
-                            dark: '#60A5FA' 
-                        },
-                        background: {
-                            light: '#f8fafc',
-                            dark: '#0f172a'
-                        },
-                        card: {
-                            light: '#ffffff',
-                            dark: '#1e293b'
-                        },
-                        text: {
-                            primary: {
-                                light: '#1e293b',
-                                dark: '#f8fafc'
-                            },
-                            secondary: {
-                                light: '#64748b',
-                                dark: '#94a3b8'
-                            }
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'fadeIn': 'fadeIn 0.3s ease-in-out',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline"></script>
+    <title>KPI Dashboard</title>
+    <link href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        .status-cell { 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .status-cell:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out forwards;
         }
-        .loading-spinner {
-            border: 3px solid rgba(46, 125, 50, 0.2);
-            border-top: 3px solid #2E7D32;
-            width: 36px; height: 36px;
-            animation: spin 1s linear infinite;
+        .modal {
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
         }
-        .dark .loading-spinner {
-            border: 3px solid rgba(76, 175, 80, 0.2);
-            border-top: 3px solid #4CAF50;
+        .modal-content {
+            transition: transform 0.3s ease, opacity 0.3s ease;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .trend-cell {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .chart-container { height: 70vh; min-height: 500px; }
-        .value-cell { font-weight: 600; }
-        .value-cell.good { color: #2E7D32; }
-        .dark .value-cell.good { color: #4CAF50; }
-        .value-cell.warning { color: #F59E0B; }
-        .dark .value-cell.warning { color: #FBBF24; }
-        .value-cell.critical { color: #DC2626; }
-        .dark .value-cell.critical { color: '#EF4444'; }
-        
-        .tab-btn {
-            transition: all 0.3s ease;
-            font-weight: 600;
-            letter-spacing: 0.025em;
+        .trend-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        .tab-btn:not(.active) {
-            opacity: 0.8;
-        }
-        .tab-btn:hover:not(.active) {
-            transform: translateY(-2px);
-            opacity: 1;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .dark .tab-btn:hover:not(.active) {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        .tab-btn.active {
-            background-color: rgba(46, 125, 50, 0.1);
-            border-color: #2E7D32;
-            color: #2E7D32;
-        }
-        .dark .tab-btn.active {
-            background-color: rgba(76, 175, 80, 0.2);
-            border-color: #4CAF50;
-            color: #4CAF50;
-        }
-
         .kpi-table {
-            border-collapse: separate;
-            border-spacing: 0;
             width: 100%;
+            border-collapse: collapse;
         }
-        
-        .kpi-table thead th {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background-color: #f8fafc;
-            border-bottom: 2px solid #e2e8f0;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-size: 0.875rem;
-            padding: 1rem 1.25rem;
+        .kpi-table th, .kpi-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
         }
-        
-        .dark .kpi-table thead th {
-            background-color: #1e293b;
-            border-bottom-color: #334155;
+        .kpi-table th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            color: #1f2937;
         }
-        
-        .kpi-cell {
-            padding: 1.25rem 1.25rem;
-            vertical-align: middle;
-            border-bottom: 1px solid #e2e8f0;
-            transition: background-color 0.2s ease;
-            font-size: 0.95rem;
+        .dark .kpi-table th {
+            background-color: #374151;
+            color: #e5e7eb;
         }
-        
-        .dark .kpi-cell {
-            border-bottom-color: #334155;
+        .kpi-table tr:hover {
+            background-color: #f9fafb;
         }
-        
-        .kpi-table tbody tr:hover .kpi-cell {
-            background-color: #f1f5f9;
+        .dark .kpi-table tr:hover {
+            background-color: #4b5563;
         }
-        
-        .dark .kpi-table tbody tr:hover .kpi-cell {
-            background-color: #1e293b;
+        .thumbnail-chart {
+            width: 100px;
+            height: 50px;
+            display: block;
+            margin: 0 auto;
         }
-        
-        .kpi-cell:first-child {
-            border-left: 1px solid #e2e8f0;
-            border-top-left-radius: 0.5rem;
-            border-bottom-left-radius: 0.5rem;
-        }
-        
-        .kpi-cell:last-child {
-            border-right: 1px solid #e2e8f0;
-            border-top-right-radius: 0.5rem;
-            border-bottom-right-radius: 0.5rem;
-        }
-        
-        .dark .kpi-cell:first-child {
-            border-left-color: #334155;
-        }
-        
-        .dark .kpi-cell:last-child {
-            border-right-color: #334155;
-        }
-        
-        .status-badge {
+        .kpi-number {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.5rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            line-height: 1;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .landing-card {
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .dark .landing-card {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-        .landing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .dark .landing-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        }
-
-        .theme-toggle {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            z-index: 50;
-            width: 3rem;
-            height: 3rem;
+            width: 24px;
+            height: 24px;
+            background-color: #00A65A;
+            color: #ffffff;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #2E7D32;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
-        }
-        .dark .theme-toggle {
-            background-color: #4CAF50;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-        .theme-toggle:hover {
-            transform: scale(1.1);
-        }
-        .theme-toggle svg {
-            width: 1.5rem;
-            height: 1.5rem;
-        }
-
-        .kpi-name-cell {
-            min-width: 300px;
-            max-width: 400px;
-            word-wrap: break-word;
-            white-space: normal !important;
-        }
-
-        .container-padding {
-            padding-left: 2rem;
-            padding-right: 2rem;
-        }
-
-        @media (min-width: 1024px) {
-            .container-padding {
-                padding-left: 4rem;
-                padding-right: 4rem;
-            }
-        }
-
-        .insights-panel {
-            background-color: #ffffff;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            height: fit-content;
-            transition: all 0.3s ease;
-        }
-        .dark .insights-panel {
-            background-color: #1e293b;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-        .insights-panel h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #2E7D32;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .dark .insights-panel h3 {
-            color: #4CAF50;
-        }
-        .insights-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .dark .insights-item {
-            border-bottom-color: #334155;
-        }
-        .insights-item:last-child {
-            border-bottom: none;
-        }
-        .insights-value {
-            font-weight: 600;
-        }
-        .insights-value.good { color: #2E7D32; }
-        .dark .insights-value.good { color: #4CAF50; }
-        .insights-value.warning { color: #F59E0B; }
-        .dark .insights-value.warning { color: #FBBF24; }
-        .insights-value.critical { color: #DC2626; }
-        .dark .insights-value.critical { color: '#EF4444'; }
-        .alert-item {
-            padding: 0.5rem 0;
-            font-size: 0.875rem;
-            line-height: 1.4;
-        }
-        .alert-item span {
-            display: block;
-            margin-top: 0.25rem;
-            color: #64748b;
-        }
-        .dark .alert-item span {
-            color: #94a3b8;
-        }
-
-        /* Export Section Styles */
-        .export-section {
-            background-color: #ffffff;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .dark .export-section {
-            background-color: #1e293b;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-        .export-section h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #2E7D32;
-        }
-        .dark .export-section h3 {
-            color: #4CAF50;
-        }
-        
-        /* Year Selector Styles */
-        .year-selector {
-            position: relative;
-            width: 100%;
-        }
-        .year-selector-display {
-            width: 100%;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            border: 1px solid #e2e8f0;
-            background-color: #ffffff;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem;
-            min-height: 42px;
-            align-items: center;
-            cursor: pointer;
-        }
-        .dark .year-selector-display {
-            background-color: #1e293b;
-            border-color: #334155;
-        }
-        .year-tag {
-            background-color: #2E7D32;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        .dark .year-tag {
-            background-color: #4CAF50;
-        }
-        .year-tag-remove {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        .year-selector-dropdown {
-            position: absolute;
-            width: 100%;
-            max-height: 300px;
-            overflow-y: auto;
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.375rem;
-            margin-top: 0.25rem;
-            z-index: 50;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-        .dark .year-selector-dropdown {
-            background-color: #1e293b;
-            border-color: #334155;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-        .year-option {
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .year-option:hover {
-            background-color: #f1f5f9;
-        }
-        .dark .year-option:hover {
-            background-color: #334155;
-        }
-        .year-option input {
-            cursor: pointer;
-        }
-        
-        /* Notification styles */
-        .notification {
-            position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            animation: slideIn 0.3s ease-out;
-        }
-        .notification.success {
-            background-color: #2E7D32;
-            color: white;
-        }
-        .notification.error {
-            background-color: #DC2626;
-            color: white;
-        }
-        .notification.info {
-            background-color: #3B82F6;
-            color: white;
-        }
-        @keyframes slideIn {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        /* High DPI charts */
-        .high-dpi-chart {
-            width: 100% !important;
-            height: 100% !important;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
         }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark font-sans">
-    <!-- Theme Toggle Button -->
-    <button id="theme-toggle" class="theme-toggle">
-        <svg id="theme-icon-light" class="hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <svg id="theme-icon-dark" class="hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-    </button>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
 
-    <!-- Landing Page (shown by default) -->
-    <div id="landing-page" class="min-h-screen flex flex-col">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 container-padding">
-            <div class="text-center mb-12">
-                <img src="static/logo.png" alt="NDA Logo" class="mx-auto mb-6 h-32 w-32">
-                <h1 class="text-4xl font-bold text-primary-light dark:text-primary-dark mb-4">Regulatory KPI Dashboard</h1>
-                <p class="text-xl text-text-secondary-light dark:text-text-secondary-dark max-w-3xl mx-auto">
-                    Monitor and analyze key performance indicators for drug regulation processes
-                </p>
+    <div id="notification-area" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#00A65A]"></div>
+    </div>
+
+    <div id="landing-page" class="flex-grow flex items-center justify-center p-6">
+        <div class="text-center bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
+            <img src="/static/logo.png" alt="National Drug Authority Logo" class="mx-auto mb-4 h-16 w-auto">
+            <h1 class="text-6xl font-extrabold mb-3 tracking-tight text-center" style="color: #01924F  !important;"> NATIONAL DRUG AUTHORITY </h1>
+            <h2 class="text-xl text-[#00A65A] mb-6 text-center">Regulatory Performance KPI Dashboard</h2>
+            <button id="enter-dashboard-btn" class="text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105"
+  style="background-color: #00A65A;" onmouseover="this.style.backgroundColor='#008B45'" onmouseout="this.style.backgroundColor='#00A65A'"
+>
+  Enter Dashboard
+</button>
+
+        </div>
+    </div>
+
+    <div id="dashboard-page" class="hidden flex-grow flex flex-col p-6">
+        <header class="flex flex-col items-center mb-8 space-y-4">
+            <div class="text-center">
+                <img src="/static/logo.png" alt="National Drug Authority Logo" class="mx-auto mb-4 h-20 w-auto">
+                <h1 class="text-6xl font-extrabold mb-3 tracking-tight text-center" style="color: #01924F  !important;"> NATIONAL DRUG AUTHORITY </h1>
+                <h2 class="text-xl font-semibold text-[#00A65A] text-center">REGULATORY PERFORMANCE KPI DASHBOARD</h2>
             </div>
-
-            <div class="grid md:grid-cols-2 gap-8 mb-12">
-                <div class="landing-card bg-card-light dark:bg-card-dark rounded-xl p-8">
-                    <h2 class="text-2xl font-bold mb-4 text-primary-light dark:text-primary-dark">About the Dashboard</h2>
-                    <p class="mb-6 text-text-secondary-light dark:text-text-secondary-dark">
-                        This dashboard provides real-time insights into the National Drug Authority's regulatory performance across three key areas:
-                        Marketing Authorization, Clinical Trials, and GMP Compliance.
-                    </p>
-                    <ul class="space-y-4 text-text-secondary-light dark:text-text-secondary-dark">
-                        <li class="flex items-start">
-                            <svg class="h-6 w-6 text-primary-light dark:text-primary-dark mr-2 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>Track performance metrics over time</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="h-6 w-6 text-primary-light dark:text-primary-dark mr-2 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>Visualize trends with interactive charts</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="h-6 w-6 text-primary-light dark:text-primary-dark mr-2 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>Filter data by year and process type</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="h-6 w-6 text-primary-light dark:text-primary-dark mr-2 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>Export data to Excel for further analysis</span>
-                        </li>
-                    </ul>
+            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+                <div class="flex items-center space-x-2">
+                    <label for="year-filter" class="text-gray-700 dark:text-gray-300 font-medium">Year:</label>
+                    <select id="year-filter" class="p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-[#00A65A] focus:border-[#00A65A]">
+                    </select>
                 </div>
+                <div class="flex items-center space-x-2">
+                    <label for="quarter-filter" class="text-gray-700 dark:text-gray-300 font-medium">Quarter:</label>
+                    <select id="quarter-filter" class="p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-[#00A65A] focus:border-[#00A65A]">
+                        <option value="">All Quarters</option>
+                        <option value="Q1">Q1</option>
+                        <option value="Q2">Q2</option>
+                        <option value="Q3">Q3</option>
+                        <option value="Q4">Q4</option>
+                    </select>
+                </div>
+                <div class="relative">
+                    <button
+  id="export-btn"
+  class="text-white font-bold py-2 px-4 rounded-md shadow transition duration-200 ease-in-out flex items-center"
+  style="background-color: #00A65A;"
+  onmouseover="this.style.backgroundColor='#008B45'"
+  onmouseout="this.style.backgroundColor='#00A65A'"
+>
+  <i class="fas fa-file-excel mr-2"></i> Export Data <i class="fas fa-chevron-down ml-2"></i>
+</button>
 
-                <div class="landing-card bg-card-light dark:bg-card-dark rounded-xl p-8">
-                    <h2 class="text-2xl font-bold mb-4 text-primary-light dark:text-primary-dark">How to Use</h2>
-                    <div class="space-y-6" style="counter-reset: step;">
-                        <div class="instruction-step">
-                            <h3 class="text-lg font-semibold mb-2">Select a Year</h3>
-                            <p class="text-text-secondary-light dark:text-text-secondary-dark">Use the year dropdown to view data for a specific reporting period.</p>
-                        </div>
-                        <div class="instruction-step">
-                            <h3 class="text-lg font-semibold mb-2">Choose a Process</h3>
-                            <p class="text-text-secondary-light dark:text-text-secondary-dark">Switch between Marketing Authorization, Clinical Trials, and GMP Compliance tabs.</p>
-                        </div>
-                        <div class="instruction-step">
-                            <h3 class="text-lg font-semibold mb-2">View Trends</h3>
-                            <p class="text-text-secondary-light dark:text-text-secondary-dark">Click on any trend chart to see a detailed view of the full historical data.</p>
-                        </div>
-                        <div class="instruction-step">
-                            <h3 class="text-lg font-semibold mb-2">Export Data</h3>
-                            <p class="text-text-secondary-light dark:text-text-secondary-dark">Use the export section to download data in Excel format for selected years or all data.</p>
-                        </div>
+                    <div id="export-dropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-10 hidden">
+                        <a href="#" id="export-selected-btn" class="block px-4 py-2 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Export Selected Years</a>
+                        <a href="#" id="export-all-btn" class="block px-4 py-2 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Export All Data</a>
                     </div>
                 </div>
             </div>
+        </header>
 
-            <div class="text-center">
-                <button id="enter-dashboard-btn" class="px-8 py-4 bg-primary-light dark:bg-primary-dark text-white font-bold rounded-lg text-lg hover:bg-secondary-light dark:hover:bg-secondary-dark transition-colors shadow-lg transform hover:scale-105">
-                    Enter KPI Dashboard
-                </button>
+        <nav class="mb-6">
+            <div class="flex space-x-2 sm:space-x-4 border-b border-gray-200 dark:border-gray-700 pb-2 overflow-x-auto">
+                <button class="tab-btn active bg-[#00A65A] text-white px-5 py-2 rounded-md font-semibold shadow-md transition duration-300 ease-in-out transform hover:scale-105" data-tab="ma">Market Authorization</button>
+                <button class="tab-btn bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 px-5 py-2 rounded-md font-semibold shadow-md transition duration-300 ease-in-out transform hover:scale-105" data-tab="ct">Clinical Trials</button>
+                <button class="tab-btn bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 px-5 py-2 rounded-md font-semibold shadow-md transition duration-300 ease-in-out transform hover:scale-105" data-tab="gmp">GMP Compliance</button>
+            </div>
+        </nav>
+
+        <main class="flex-grow">
+            <div id="ma-tab" class="tab-content animate-fadeIn">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Overall KPI Status</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="maStatusPieChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Year-over-Year Performance</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="maYoyPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div id="ma-kpis" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                    <table class="kpi-table">
+                        <thead>
+                            <tr>
+                                <th class="w-12">No.</th>
+                                <th>KPI Name</th>
+                                <th>Quarter</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="ct-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 mdgrid-cols-2 gap-6 mb-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Overall KPI Status</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="ctStatusPieChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Year-over-Year Performance</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="ctYoyPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div id="ct-kpis" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                    <table class="kpi-table">
+                        <thead>
+                            <tr>
+                                <th class="w-12">No.</th>
+                                <th>KPI Name</th>
+                                <th>Quarter</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="gmp-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Overall KPI Status</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="gmpStatusPieChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Year-over-Year Performance</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="gmpYoyPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div id="gmp-kpis" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                    <table class="kpi-table">
+                        <thead>
+                            <tr>
+                                <th class="w-12">No.</th>
+                                <th>KPI Name</th>
+                                <th>Quarter</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="trend-modal" class="modal fixed inset-0 flex items-center justify-center p-4 z-40 hidden opacity-0 transition-opacity duration-300">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl p-6 relative transform scale-95 transition-all duration-300">
+            <button id="close-trend-modal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold">×</button>
+            <h3 id="trend-kpi-title" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">KPI Trend</h3>
+            <div class="chart-container" style="height: 400px;">
+                <canvas id="kpiTrendChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Dashboard Page (hidden by default) -->
-    <div id="dashboard-page" class="hidden container-padding">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <img src="static/logo.png" alt="NDA Logo" class="mx-auto mb-4 h-24 w-24">
-            <h1 class="text-3xl font-bold text-primary-light dark:text-primary-dark">National Drug Authority</h1>
-            <p class="text-lg text-text-secondary-light dark:text-text-secondary-dark">Regulatory KPI Dashboard</p>
-        </div>
-
-        <!-- Loading Overlay -->
-        <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-card-light dark:bg-card-dark p-8 rounded-xl shadow-xl">
-                <div class="flex flex-col items-center">
-                    <div class="loading-spinner mb-4"></div>
-                    <span class="text-lg font-medium">Loading data...</span>
-                </div>
+    <div id="export-modal" class="modal fixed inset-0 flex items-center justify-center p-4 z-40 hidden opacity-0 transition-opacity duration-300">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6 relative transform scale-95 transition-all duration-300">
+            <button id="close-export-modal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold">×</button>
+            <h3 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Select Years for Export</h3>
+            <div id="year-checkboxes" class="grid grid-cols-2 gap-3 mb-6 max-h-60 overflow-y-auto pr-2">
             </div>
-        </div>
-
-        <!-- Export Section -->
-        <div class="export-section mb-6">
-            <h3>Export Data</h3>
-            <div class="flex flex-col sm:flex-row gap-4 items-end">
-                <div class="flex-1 w-full">
-                    <label class="block text-sm font-medium mb-1">Select Years</label>
-                    <div class="year-selector">
-                        <div class="year-selector-display" id="year-selector-display">
-                            <span class="text-gray-500">Select years...</span>
-                        </div>
-                        <div class="year-selector-dropdown" id="year-selector-dropdown">
-                            <!-- Options will be populated by JavaScript -->
-                        </div>
-                    </div>
-                    <select id="export-year-filter" multiple class="hidden">
-                        <!-- Hidden select for form submission -->
-                    </select>
-                </div>
-                <div class="flex gap-2">
-                    <button id="export-selected-btn" class="px-4 py-2 bg-primary-light dark:bg-primary-dark text-white rounded-lg hover:bg-secondary-light dark:hover:bg-secondary-dark transition-colors whitespace-nowrap">
-                        Export Selected
-                    </button>
-                    <button id="export-all-btn" class="px-4 py-2 bg-accent-light dark:bg-accent-dark text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors whitespace-nowrap">
-                        Export All
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Dashboard Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left Insights Panel -->
-            <div class="lg:col-span-3 insights-panel">
-                <h3>KPI Status Summary</h3>
-                <div id="kpi-status-summary">
-                    <div class="insights-item">
-                        <span>On Target</span>
-                        <span id="kpi-status-good" class="insights-value good">0</span>
-                    </div>
-                    <div class="insights-item">
-                        <span>Needs Attention</span>
-                        <span id="kpi-status-warning" class="insights-value warning">0</span>
-                    </div>
-                    <div class="insights-item">
-                        <span>Below Target</span>
-                        <span id="kpi-status-critical" class="insights-value critical">0</span>
-                    </div>
-                </div>
-                <div class="insight-chart-container">
-                    <canvas id="status-chart"></canvas>
-                </div>
-                <h3 class="mt-6">Critical Alerts</h3>
-                <div id="critical-alerts" class="text-sm">
-                    <p class="text-gray-500 dark:text-gray-400">No critical alerts</p>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="lg:col-span-6">
-                <!-- Filters -->
-                <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                    <div class="flex-1">
-                        <label for="year-filter" class="block text-sm font-medium mb-1">Year</label>
-                        <select id="year-filter" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-card-light dark:bg-card-dark focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark focus:border-transparent">
-                            <option value="">Loading years...</option>
-                        </select>
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium mb-1">Process</label>
-                        <div class="inline-flex rounded-md shadow-sm" role="group">
-                            <button class="tab-btn px-6 py-3 text-lg rounded-l-lg border border-gray-300 dark:border-gray-600 bg-card-light dark:bg-card-dark active" data-tab="ma">
-                                Marketing Authorization
-                            </button>
-                            <button class="tab-btn px-6 py-3 text-lg border-t border-b border-gray-300 dark:border-gray-600 bg-card-light dark:bg-card-dark" data-tab="ct">
-                                Clinical Trials
-                            </button>
-                            <button class="tab-btn px-6 py-3 text-lg rounded-r-lg border border-gray-300 dark:border-gray-600 bg-card-light dark:bg-card-dark" data-tab="gmp">
-                                GMP Compliance
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabs Content -->
-                <div id="ma-tab" class="tab-content bg-card-light dark:bg-card-dark rounded-xl shadow-lg overflow-hidden">
-                    <h2 class="text-xl font-semibold p-6 pb-0">Marketing Authorization KPIs</h2>
-                    <div class="overflow-x-auto p-6 pt-0">
-                        <table class="kpi-table w-full">
-                            <thead>
-                                <tr>
-                                    <th class="px-6 py-4 text-left">KPI Name</th>
-                                    <th class="px-6 py-4 text-left">Quarter</th>
-                                    <th class="px-6 py-4 text-left">Value</th>
-                                    <th class="px-6 py-4 text-left">Status</th>
-                                    <th class="px-6 py-4 text-left">Trend</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ma-kpi-table" class="divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center">Select a year to view data</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="ct-tab" class="tab-content hidden bg-card-light dark:bg-card-dark rounded-xl shadow-lg overflow-hidden">
-                    <h2 class="text-xl font-semibold p-6 pb-0">Clinical Trials KPIs</h2>
-                    <div class="overflow-x-auto p-6 pt-0">
-                        <table class="kpi-table w-full">
-                            <thead>
-                                <tr>
-                                    <th class="px-6 py-4 text-left">KPI Name</th>
-                                    <th class="px-6 py-4 text-left">Quarter</th>
-                                    <th class="px-6 py-4 text-left">Value</th>
-                                    <th class="px-6 py-4 text-left">Status</th>
-                                    <th class="px-6 py-4 text-left">Trend</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ct-kpi-table" class="divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center">Select a year to view data</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="gmp-tab" class="tab-content hidden bg-card-light dark:bg-card-dark rounded-xl shadow-lg overflow-hidden">
-                    <h2 class="text-xl font-semibold p-6 pb-0">GMP Compliance KPIs</h2>
-                    <div class="overflow-x-auto p-6 pt-0">
-                        <table class="kpi-table w-full">
-                            <thead>
-                                <tr>
-                                    <th class="px-6 py-4 text-left">KPI Name</th>
-                                    <th class="px-6 py-4 text-left">Quarter</th>
-                                    <th class="px-6 py-4 text-left">Value</th>
-                                    <th class="px-6 py-4 text-left">Status</th>
-                                    <th class="px-6 py-4 text-left">Trend</th>
-                                </tr>
-                            </thead>
-                            <tbody id="gmp-kpi-table" class="divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center">Select a year to view data</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Insights Panel -->
-            <div class="lg:col-span-3 insights-panel">
-                <h3>
-                    Year-over-Year Comparison
-                    <label class="toggle-button ml-2">
-                        <input type="checkbox" id="yoy-toggle" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </h3>
-                <div id="yoy-comparison">
-                    <div class="insights-item">
-                        <span>Improved KPIs</span>
-                        <span id="yoy-improved" class="insights-value good">0</span>
-                    </div>
-                    <div class="insights-item">
-                        <span>Declined KPIs</span>
-                        <span id="yoy-declined" class="insights-value critical">0</span>
-                    </div>
-                </div>
-                <div class="insight-chart-container">
-                    <canvas id="yoy-chart"></canvas>
-                </div>
-                <h3 class="mt-6">Key Performance Metrics</h3>
-                <div id="key-metrics">
-                    <div class="insights-item">
-                        <span>Total KPIs Monitored</span>
-                        <span id="total-kpis" class="insights-value">0</span>
-                    </div>
-                    <div class="insights-item">
-                        <span>Compliance Rate</span>
-                        <span id="compliance-rate" class="insights-value">0%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trend Modal -->
-        <div id="trend-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-            <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
-                <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 id="modal-title" class="text-xl font-semibold"></h3>
-                    <button id="close-trend-modal" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors">
-                        Close
-                    </button>
-                </div>
-                <div class="p-6 flex-1 min-h-0">
-                    <div class="chart-container">
-                        <canvas id="trend-chart" class="high-dpi-chart"></canvas>
-                    </div>
-                </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-export-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-200 ease-in-out">Cancel</button>
+                <button id="confirm-export-btn" class="bg-[#00A65A] hover:bg-[#008B45] text-white font-bold py-2 px-4 rounded-md transition duration-200 ease-in-out">Confirm</button>
             </div>
         </div>
     </div>
 
     <script>
-        // API Base URL - points to the FastAPI backend
-        const API_BASE_URL = window.location.origin;
-        
-        // Store full dataset for trend charts
-        const fullDatasetCache = {
-            ma: null,
-            ct: null,
-            gmp: null
-        };
+        // --- Constants and Global Variables ---
+        const API_BASE_URL = 'http://localhost:8000';
+        const AUTH_CREDENTIALS = 'Basic ' + btoa('kpi_user:kpipassword'); // Replace with your credentials
 
-        // Chart instances
-        const chartInstances = {
-            statusChart: null,
-            yoyChart: null,
-            trendChart: null
-        };
+        const fullDatasetCache = {};
+        let kpiTrendChartInstance = null; // Single instance for modal chart
+        const statusPieChartInstances = {};
+        const yoyPieChartInstances = {};
+        const thumbnailChartInstances = {};
 
-        // KPI Name Mapping with complete descriptions
         const kpiNameMap = {
             // Marketing Authorization KPIs
-            'pct_new_apps_evaluated_on_time': 'Percentage of new MA applications evaluated within timeline',
-            'pct_renewal_apps_evaluated_on_time': 'Percentage of renewal applications evaluated within timeline', 
-            'pct_variation_apps_evaluated_on_time': 'Percentage of variation applications evaluated within timeline',
-            'pct_fir_responses_on_time': 'Percentage of FIR responses received within timeline',
-            'pct_query_responses_evaluated_on_time': 'Percentage of query responses evaluated within timeline',
-            'pct_granted_within_90_days': 'Percentage of applications granted MA within 90 days',
-            'median_duration_continental': 'Median processing time for continentally reviewed applications (days)',
-            
+            'pct_new_apps_evaluated_on_time': 'Percentage of new applications for marketing authorization of medicines evaluated within a specified time',
+            'pct_renewal_apps_evaluated_on_time': 'Percentage of renewals applications for marketing authorization of medicines evaluated within a specified time', 
+            'pct_variation_apps_evaluated_on_time': 'Percentage of applications for variation of registered medicinal products evaluated within a specified time',
+            'pct_fir_responses_on_time': 'Percentage of further information requests responses received within a specified timeline',
+            'pct_query_responses_evaluated_on_time': 'Percentage of query responses/additional data evaluated within a specified time',
+            'pct_granted_within_90_days': 'Percentage of medical products and technologies granted MA within 90 working days',
+            'median_duration_continental': 'Median timelines taken by NDA to process continentally reviewed application from the time it is received to decision (days)',
             // Clinical Trials KPIs
             'pct_new_apps_evaluated_on_time': 'Percentage of new clinical trial applications evaluated within timeline',
             'pct_amendment_apps_evaluated_on_time': 'Percentage of clinical trial amendments evaluated within timeline',
-            'pct_gcp_inspections_on_time': 'Percentage of GCP inspections conducted within timeline',
+            'pct_gcp_inspections_on_time': 'Percentage of approved & ongoing clinical trials inspected as per the GCP plan',
             'pct_safety_reports_assessed_on_time': 'Percentage of safety reports assessed within timeline',
             'pct_gcp_compliant': 'Percentage of clinical trials compliant with GCP requirements',
-            'pct_registry_submissions_on_time': 'Percentage of clinical trials registered in national registry within timeline',
+            'pct_registry_submissions_on_time': 'Percentage of clinical trials registered in national registry',
             'pct_capa_evaluated_on_time': 'Percentage of CAPA evaluations completed within timeline',
             'avg_turnaround_time': 'Average turnaround time for clinical trial applications (days)',
-            
             // GMP Compliance KPIs
             'pct_facilities_inspected_on_time': 'Percentage of manufacturing facilities inspected for GMP as per plan',
-            'pct_complaint_inspections_on_time': 'Percentage of complaint-triggered GMP inspections conducted',
-            'pct_inspections_waived_on_time': 'Percentage of GMP on-site inspections waived within timelines',
-            'pct_facilities_compliant': 'Percentage of manufacturing facilities compliant with GMP',
-            'pct_capa_decisions_on_time': 'Percentage of final CAPA decisions issued within timeline',
-            'pct_applications_completed_on_time': 'Percentage of GMP inspection applications completed within timeline',
-            'avg_turnaround_time': 'Average turnaround time for GMP applications (days)',
-            'median_turnaround_time': 'Median turnaround time for GMP inspection applications (days)',
-            'pct_reports_published_on_time': 'Percentage of GMP inspection reports published on website within timeline'
+            'pct_complaint_inspections_on_time': 'Percentage of complaint-triggered GMP inspections conducted at pharmaceutical manufacturing facilities',
+            'pct_inspections_waived_on_time': 'Percentage of GMP on-site inspections waived for pharmaceutical manufacturing facilities within set timelines',
+            'pct_facilities_compliant': 'Percentage of pharmaceutical manufacturing facilities compliant with GMP requirements',
+            'pct_capa_decisions_on_time': 'Percentage of final CAPA decisions issued within a specified timeline',
+            'pct_applications_completed_on_time': 'Percentage of GMP inspection applications for pharmaceutical manufacturing facilities completed within the set timeline',
+            'avg_turnaround_time': 'Average turnaround time (in days) to complete GMP applications for pharmaceutical manufacturing facilities',
+            'median_turnaround_time': 'Median turnaround time (in days) to complete GMP inspection applications for pharmaceutical manufacturing facilities',
+            'pct_reports_published_on_time': 'Percentage of GMP inspection reports published on the regulator’s website within a specified timeline'
         };
 
-        // Initialize the dashboard
-        async function initDashboard() {
-            showLoading(true);
-            
-            try {
-                await Promise.all([
-                    loadAvailableYears(),
-                    populateExportYearFilter(),
-                    cacheFullDataset('ma'),
-                    cacheFullDataset('ct'),
-                    cacheFullDataset('gmp')
-                ]);
-                
-                setupEventListeners();
-                setupThemeToggle();
-            } catch (error) {
-                console.error("Dashboard initialization failed:", error);
-                showNotification("Failed to initialize dashboard. Please check console for details.", "error");
-            } finally {
-                showLoading(false);
-            }
-        }
+        const percentageKpis = [
+            'pct_new_apps_evaluated_on_time',
+            'pct_renewal_apps_evaluated_on_time',
+            'pct_variation_apps_evaluated_on_time',
+            'pct_fir_responses_on_time',
+            'pct_query_responses_evaluated_on_time',
+            'pct_granted_within_90_days',
+            'pct_amendment_apps_evaluated_on_time',
+            'pct_gcp_inspections_on_time',
+            'pct_safety_reports_assessed_on_time',
+            'pct_gcp_compliant',
+            'pct_registry_submissions_on_time',
+            'pct_capa_evaluated_on_time',
+            'pct_facilities_inspected_on_time',
+            'pct_complaint_inspections_on_time',
+            'pct_inspections_waived_on_time',
+            'pct_facilities_compliant',
+            'pct_capa_decisions_on_time',
+            'pct_applications_completed_on_time',
+            'pct_reports_published_on_time'
+        ];
 
-        // Cache full dataset for a process
-        async function cacheFullDataset(process) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/${process}`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const data = await response.json();
-                fullDatasetCache[process] = data;
-            } catch (error) {
-                console.error(`Failed to cache full dataset for ${process}:`, error);
-            }
-        }
+        // --- Utility Functions ---
 
-        // Load available years from all KPI tables
-        async function loadAvailableYears() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/years`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const years = await response.json();
-                populateYearFilter(years);
-                
-                if (years.length > 0) {
-                    document.getElementById('year-filter').value = years[0];
-                }
-            } catch (error) {
-                console.error("Failed to load available years:", error);
-                document.getElementById('year-filter').innerHTML = '<option value="">Failed to load years</option>';
-            }
-        }
-
-        // Populate year filter dropdown
-        function populateYearFilter(years) {
-            const yearFilter = document.getElementById('year-filter');
-            yearFilter.innerHTML = '';
-            
-            if (years.length === 0) {
-                yearFilter.innerHTML = '<option value="">No data available</option>';
-                return;
-            }
-            
-            years.forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearFilter.appendChild(option);
-            });
-        }
-
-        // Populate export year filter with the new selector
-        async function populateExportYearFilter() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/years`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
-                const years = await response.json();
-                const yearSelect = document.getElementById('export-year-filter');
-                const dropdown = document.getElementById('year-selector-dropdown');
-                const display = document.getElementById('year-selector-display');
-                
-                yearSelect.innerHTML = '';
-                dropdown.innerHTML = '';
-                
-                if (years.length === 0) {
-                    display.innerHTML = '<span class="text-gray-500">No data available</span>';
-                    return;
-                }
-                
-                years.forEach(year => {
-                    // Add to hidden select
-                    const option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = year;
-                    yearSelect.appendChild(option);
-                    
-                    // Add to dropdown
-                    const dropdownItem = document.createElement('div');
-                    dropdownItem.className = 'year-option';
-                    dropdownItem.innerHTML = `
-                        <input type="checkbox" id="export-year-${year}" value="${year}" class="mr-2">
-                        <label for="export-year-${year}">${year}</label>
-                    `;
-                    dropdown.appendChild(dropdownItem);
-                    
-                    // Add event listener
-                    const checkbox = dropdownItem.querySelector('input');
-                    checkbox.addEventListener('change', (e) => {
-                        const option = yearSelect.querySelector(`option[value="${year}"]`);
-                        option.selected = e.target.checked;
-                        updateYearSelectDisplay();
-                    });
-                });
-                
-                // Show dropdown when display is clicked
-                display.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                });
-                
-                // Close dropdown when clicking outside
-                document.addEventListener('click', () => {
-                    dropdown.style.display = 'none';
-                });
-                
-                // Update display initially
-                updateYearSelectDisplay();
-            } catch (error) {
-                console.error("Failed to load years for export:", error);
-                document.getElementById('year-selector-display').innerHTML = '<span class="text-red-500">Failed to load years</span>';
-            }
-        }
-
-        // Update the year selector display
-        function updateYearSelectDisplay() {
-            const display = document.getElementById('year-selector-display');
-            const selectedOptions = Array.from(document.getElementById('export-year-filter').selectedOptions);
-            
-            display.innerHTML = '';
-            
-            if (selectedOptions.length === 0) {
-                display.innerHTML = '<span class="text-gray-500">Select years...</span>';
-                return;
-            }
-            
-            selectedOptions.forEach(option => {
-                const tag = document.createElement('span');
-                tag.className = 'year-tag';
-                tag.innerHTML = `
-                    ${option.value}
-                    <span class="year-tag-remove" data-year="${option.value}">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </span>
-                `;
-                display.appendChild(tag);
-                
-                // Add event listener to remove button
-                tag.querySelector('.year-tag-remove').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const year = e.target.closest('.year-tag-remove').dataset.year;
-                    const option = document.querySelector(`#export-year-filter option[value="${year}"]`);
-                    option.selected = false;
-                    document.querySelector(`#year-selector-dropdown input[value="${year}"]`).checked = false;
-                    updateYearSelectDisplay();
-                });
-            });
-        }
-
-        // Export selected years to Excel
-        async function exportSelectedYears() {
-            const selectedOptions = Array.from(document.getElementById('export-year-filter').selectedOptions);
-            const selectedYears = selectedOptions.map(option => option.value);
-            
-            if (selectedYears.length === 0) {
-                showNotification('Please select at least one year to export', 'error');
-                return;
-            }
-            
-            try {
-                showLoading(true);
-                
-                // Convert to comma-separated string for GET request
-                const yearsParam = selectedYears.join(',');
-                const url = `${API_BASE_URL}/export/by-year?years=${yearsParam}&processes=ma,ct,gmp`;
-                
-                // Use fetch to handle errors properly
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const blob = await response.blob();
-                const downloadUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = `kpi_data_${selectedYears.join('_')}.xlsx`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(downloadUrl);
-                
-                showNotification('Export completed successfully!');
-            } catch (error) {
-                console.error("Export failed:", error);
-                showNotification('Failed to export data. Please try again.', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Export all data to Excel
-        async function exportAllData() {
-            try {
-                showLoading(true);
-                
-                const response = await fetch(`${API_BASE_URL}/export/all`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const blob = await response.blob();
-                const downloadUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = 'all_kpi_data.xlsx';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(downloadUrl);
-                
-                showNotification('All data exported successfully!');
-            } catch (error) {
-                console.error("Export failed:", error);
-                showNotification('Failed to export all data. Please try again.', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Show notification
-        function showNotification(message, type = 'success') {
+        function showNotification(message, type = 'info', duration = 3000) {
+            const notificationArea = document.getElementById('notification-area');
             const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="${type === 'success' ? 'M5 13l4 4L19 7' : 
-                           type === 'error' ? 'M6 18L18 6M6 6l12 12' : 
-                           'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}"/>
-                </svg>
-                <span>${message}</span>
-            `;
-            document.body.appendChild(notification);
-            
+            notification.className = `p-4 rounded-md shadow-md text-white flex items-center transform transition-all duration-300 ease-out translate-x-full opacity-0`;
+
+            let bgColor = 'bg-blue-500';
+            if (type === 'success') bgColor = 'bg-green-600';
+            else if (type === 'error') bgColor = 'bg-red-500';
+            else if (type === 'warning') bgColor = 'bg-yellow-500';
+
+            notification.classList.add(bgColor);
+            notification.innerHTML = `<i class="fas fa-info-circle mr-3"></i> ${message}`;
+
+            if (type === 'success') notification.querySelector('i').className = 'fas fa-check-circle mr-3';
+            else if (type === 'error') notification.querySelector('i').className = 'fas fa-times-circle mr-3';
+            else if (type === 'warning') notification.querySelector('i').className = 'fas fa-exclamation-triangle mr-3';
+
+            notificationArea.appendChild(notification);
+
             setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
+                notification.classList.remove('translate-x-full', 'opacity-0');
+                notification.classList.add('translate-x-0', 'opacity-100');
+            }, 50);
+
+            setTimeout(() => {
+                notification.classList.remove('translate-x-0', 'opacity-100');
+                notification.classList.add('translate-x-full', 'opacity-0');
+                notification.addEventListener('transitionend', () => notification.remove(), { once: true });
+            }, duration);
         }
 
-        // Show/hide loading overlay
         function showLoading(show) {
-            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+            document.getElementById('loading-overlay').classList.toggle('hidden', !show);
         }
 
-        // Extract year from quarter string (e.g., "2022Q1" -> 2022)
-        function extractYearFromQuarter(quarter) {
-            if (!quarter) return null;
-            const yearMatch = quarter.match(/^(\d{4})/);
-            return yearMatch ? parseInt(yearMatch[1]) : null;
+        function extractYearFromQuarter(quarterString) {
+            if (!quarterString || typeof quarterString !== 'string') return null;
+            const parts = quarterString.split('Q');
+            return parseInt(parts[0]);
         }
 
-        // Format quarter for display (e.g., "2022Q1" -> "Q1 2022")
-        function formatQuarterDisplay(quarter) {
-            if (!quarter) return 'N/A';
-            const year = quarter.substring(0, 4);
-            const q = quarter.substring(4);
-            return `${q} ${year}`;
+        function formatQuarterDisplay(quarterString) {
+            if (!quarterString || typeof quarterString !== 'string') return 'N/A';
+            const year = extractYearFromQuarter(quarterString);
+            const quarterNum = quarterString.split('Q')[1];
+            return `Q${quarterNum} ${year}`;
         }
 
-        // Format value based on KPI type
-        function formatValue(name, value) {
-            if (value === null || value === undefined) return 'N/A';
-            
-            if (name.startsWith('pct_') || name.startsWith('pct')) {
-                let percentage = parseFloat(value) * 100;
-                if (percentage > 100) percentage = 100;
-                if (percentage < 0) percentage = 0;
-                return `${percentage.toFixed(1)}%`;
+        function formatValue(kpiKey, value) {
+            if (value === null || value === undefined || isNaN(value)) return 'N/A';
+            if (percentageKpis.includes(kpiKey)) {
+                const parsedValue = parseFloat(value);
+                return parsedValue >= 0 && parsedValue <= 1000 ? `${parsedValue.toFixed(1)}%` : 'Invalid';
+            } else if (['median_duration_continental', 'avg_turnaround_time', 'median_turnaround_time'].includes(kpiKey)) {
+                return `${parseFloat(value).toFixed(0)} days`;
             }
-            
-            if (name.includes('time') || name.includes('duration')) {
-                return `${Math.round(value)} days`;
+            return parseFloat(value).toLocaleString();
+        }
+
+        function getKpiStatus(kpiName, value) {
+            if (value === null || value === undefined || isNaN(value)) return 'N/A';
+            value = parseFloat(value);
+            if (percentageKpis.includes(kpiName)) {
+                if (value < 0 || value > 10000) return 'Invalid';
+                if (value >= 90) return 'On Target';
+                if (value >= 70 && value < 90) return 'Needs Attention';
+                return 'Below Target';
             }
-            
-            return value;
-        }
+            const targetInfo = {
+                'median_duration_continental': { target: 30, type: 'lessThan', threshold: 45 },
+                'avg_turnaround_time': { target: 30, type: 'lessThan', threshold: 45 },
+                'median_turnaround_time': { target: 30, type: 'lessThan', threshold: 45 }
+            }[kpiName] || { target: 0, type: 'greaterThan', threshold: 0 };
 
-        // Determine status based on KPI value
-        function determineStatus(kpiName, value) {
-            if (value === null || value === undefined) return 'unknown';
-            
-            if (kpiName.startsWith('pct_') || kpiName.startsWith('pct')) {
-                if (value >= 0.95) return 'good';
-                if (value >= 0.85) return 'warning';
-                return 'critical';
+            if (targetInfo.type === 'greaterThan') {
+                if (value >= targetInfo.target) return 'On Target';
+                if (targetInfo.threshold && value >= targetInfo.threshold) return 'Needs Attention';
+                return 'Below Target';
+            } else if (targetInfo.type === 'lessThan') {
+                if (value <= targetInfo.target) return 'On Target';
+                if (targetInfo.threshold && value <= targetInfo.threshold) return 'Needs Attention';
+                return 'Below Target';
             }
-            
-            if (kpiName.includes('time') || kpiName.includes('duration')) {
-                if (value <= 30) return 'good';
-                if (value <= 60) return 'warning';
-                return 'critical';
+            return 'N/A';
+        }
+
+        function getStatusColorClass(status) {
+            switch (status) {
+                case 'On Target': return 'bg-green-600 text-white dark:bg-green-500 dark:text-white';
+                case 'Needs Attention': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100';
+                case 'Below Target': return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100';
+                case 'N/A': return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200';
+                case 'Invalid': return 'bg-red-200 text-red-900 dark:bg-red-900 dark:text-red-200';
+                default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
             }
-            
-            return 'unknown';
         }
 
-        // Get status class for styling
-        function getStatusClass(status) {
-            const classes = {
-                'good': 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100',
-                'warning': 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100',
-                'critical': 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100',
-                'unknown': 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-            };
-            return classes[status] || classes.unknown;
+        function getTrendStatus(currentVal, prevVal, kpiKey) {
+            if (currentVal === null || prevVal === null || currentVal === undefined || prevVal === undefined || isNaN(currentVal) || isNaN(prevVal)) {
+                return 'N/A';
+            }
+            currentVal = parseFloat(currentVal);
+            prevVal = parseFloat(prevVal);
+            const isLessThanBetter = ['median_duration_continental', 'avg_turnaround_time', 'median_turnaround_time'].includes(kpiKey);
+            
+            if (isLessThanBetter) {
+                if (currentVal < prevVal) return 'Improved';
+                if (currentVal > prevVal) return 'Declined';
+                return 'Stable';
+            } else {
+                if (currentVal > prevVal) return 'Improved';
+                if (currentVal < prevVal) return 'Declined';
+                return 'Stable';
+            }
         }
 
-        // Get status text for display
-        function getStatusText(status) {
-            const texts = {
-                'good': 'On Target',
-                'warning': 'Needs Attention',
-                'critical': 'Below Target',
-                'unknown': 'No Data'
-            };
-            return texts[status] || texts.unknown;
-        }
+        function renderThumbnailChart(canvasId, kpiName, process, data) {
+            const ctx = document.getElementById(canvasId)?.getContext('2d');
+            if (!ctx) {
+                console.error(`Canvas not found for ${canvasId}`);
+                return;
+            }
+            const chartKey = `${process}_${kpiName}_${canvasId}`;
 
-        // Create mini trend chart
-        function createMiniChart(canvasId, data, labels) {
-            const container = document.getElementById(canvasId);
-            if (!container) return;
-            
-            const canvas = document.createElement('canvas');
-            container.innerHTML = '';
-            container.appendChild(canvas);
-            
-            // Set higher DPI
-            const dpi = window.devicePixelRatio || 1;
-            canvas.style.width = '100%';
-            canvas.style.height = '100%';
-            canvas.width = container.offsetWidth * dpi;
-            canvas.height = container.offsetHeight * dpi;
-            
-            new Chart(canvas, {
+            // Destroy existing thumbnail chart if it exists
+            if (thumbnailChartInstances[chartKey]) {
+                thumbnailChartInstances[chartKey].destroy();
+                delete thumbnailChartInstances[chartKey];
+            }
+
+            // Filter and sort data
+            const validData = data.filter(item => item[kpiName] !== null && item[kpiName] !== undefined && !isNaN(item[kpiName]));
+            console.log(`Rendering thumbnail for ${chartKey}, valid data points:`, validData);
+
+            if (validData.length === 0) {
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#4B5563';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data', 50, 25);
+                return;
+            }
+
+            validData.sort((a, b) => {
+                const yearA = extractYearFromQuarter(a.quarter) || 0;
+                const qtrA = a.quarter && a.quarter.includes('Q') ? parseInt(a.quarter.substring(a.quarter.indexOf('Q') + 1)) : 0;
+                const yearB = extractYearFromQuarter(b.quarter) || 0;
+                const qtrB = b.quarter && b.quarter.includes('Q') ? parseInt(b.quarter.substring(b.quarter.indexOf('Q') + 1)) : 0;
+                if (yearA !== yearB) return yearA - yearB;
+                return qtrA - qtrB;
+            });
+
+            const labels = validData.map(item => formatQuarterDisplay(item.quarter));
+            const kpiValues = validData.map(item => parseFloat(item[kpiName]));
+
+            thumbnailChartInstances[chartKey] = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels || data.map((_, i) => `Q${i+1}`),
+                    labels: labels,
                     datasets: [{
-                        data: data,
-                        borderColor: '#2E7D32',
-                        borderWidth: 1.5 * dpi,
-                        tension: 0.4,
-                        pointRadius: 0,
+                        data: kpiValues,
+                        borderColor: '#00A65A',
+                        borderWidth: 2,
+                        tension: 0.1,
                         fill: false,
-                        segment: {
-                            borderColor: ctx => {
-                                const prev = ctx.p0.parsed.y;
-                                const curr = ctx.p1.parsed.y;
-                                return curr >= prev ? '#2E7D32' : '#DC2626';
-                            }
-                        }
+                        pointRadius: validData.length === 1 ? 4 : 2,
+                        pointBackgroundColor: '#00A65A',
+                        hoverRadius: validData.length === 1 ? 6 : 3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { 
+                    plugins: {
                         legend: { display: false },
-                        tooltip: {
-                            enabled: false
+                        tooltip: { enabled: false },
+                        title: { display: false }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    },
+                    elements: {
+                        line: { borderWidth: 2 },
+                        point: { radius: validData.length === 1 ? 4 : 2 }
+                    },
+                    animation: false
+                }
+            });
+        }
+
+        function populateKPIs(kpiData, process, year, quarter) {
+            const container = document.getElementById(`${process}-kpis`).querySelector('tbody');
+            container.innerHTML = '';
+            console.log(`Populating KPIs for ${process}, year: ${year}, quarter: ${quarter || 'all'}`, kpiData);
+
+            // Clear existing thumbnail charts for this process
+            Object.keys(thumbnailChartInstances)
+                .filter(key => key.startsWith(`${process}_`))
+                .forEach(key => {
+                    if (thumbnailChartInstances[key]) {
+                        thumbnailChartInstances[key].destroy();
+                        delete thumbnailChartInstances[key];
+                    }
+                });
+
+            if (!kpiData || kpiData.length === 0) {
+                container.innerHTML = `<tr><td colspan="6" class="text-gray-600 dark:text-gray-400 text-center">No data available for ${process.toUpperCase()} in ${year} ${quarter || 'all quarters'}.</td></tr>`;
+                showNotification(`No KPI data found for ${process.toUpperCase()} in ${year} ${quarter || 'all quarters'}.`, "warning");
+                return;
+            }
+
+            let kpiCounter = 1; // Initialize counter for KPI numbering
+            kpiData.forEach(item => {
+                const itemKeys = Object.keys(item).filter(key => !['id', 'quarter', 'run_date', 'year'].includes(key) && kpiNameMap[key]);
+                console.log(`Processing item for ${process}, quarter: ${item.quarter}, keys:`, itemKeys);
+
+                itemKeys.forEach(kpiKey => {
+                    const value = item[kpiKey];
+                    const formattedValue = formatValue(kpiKey, value);
+                    const status = getKpiStatus(kpiKey, value);
+                    const statusColorClass = getStatusColorClass(status);
+
+                    const previousYear = parseInt(year) - 1;
+                    const previousQuarterFullString = quarter ? `${previousYear}${quarter}` : `${previousYear}${item.quarter.split('Q')[1]}`;
+                    const previousData = fullDatasetCache[process]?.find(d => d.quarter === previousQuarterFullString);
+                    const prevValue = previousData ? previousData[kpiKey] : null;
+                    const trend = getTrendStatus(value, prevValue, kpiKey);
+
+                    const kpiNameDisplay = kpiNameMap[kpiKey] || kpiKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const canvasId = `thumbnail-${process}-${kpiKey}-${item.quarter.replace('Q', '-')}`;
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><span class="kpi-number">${kpiCounter}</span></td>
+                        <td>${kpiNameDisplay}</td>
+                        <td>${formatQuarterDisplay(item.quarter)}</td>
+                        <td>${formattedValue}</td>
+                        <td><span class="inline-block px-3 py-1 rounded-full text-sm font-medium ${statusColorClass}">${status}</span></td>
+                        <td><canvas id="${canvasId}" class="trend-cell thumbnail-chart" data-kpi="${kpiKey}" data-process="${process}"></canvas></td>
+                    `;
+                    container.appendChild(row);
+                    kpiCounter++; // Increment counter for each KPI
+
+                    // Render thumbnail chart
+                    try {
+                        renderThumbnailChart(canvasId, kpiKey, process, fullDatasetCache[process] || kpiData);
+                    } catch (error) {
+                        console.error(`Error rendering thumbnail for ${canvasId}:`, error);
+                        const canvas = document.getElementById(canvasId);
+                        if (canvas) {
+                            const ctx = canvas.getContext('2d');
+                            ctx.font = '12px Arial';
+                            ctx.fillStyle = '#4B5563';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('No data', 50, 25);
                         }
-                    },
-                    scales: { 
-                        x: { 
-                            display: false,
-                            grid: {
-                                display: false
+                    }
+                });
+            });
+
+            if (container.innerHTML === '') {
+                container.innerHTML = `<tr><td colspan="6" class="text-gray-600 dark:text-gray-400 text-center">No valid KPIs found for ${process.toUpperCase()} in ${year} ${quarter || 'all quarters'}.</td></tr>`;
+                showNotification(`No valid KPIs found for ${process.toUpperCase()} in selected period.`, "warning");
+            }
+        }
+
+        function calculateStatusCounts(kpiData) {
+            let statusCounts = { 'On Target': 0, 'Needs Attention': 0, 'Below Target': 0, 'N/A': 0, 'Invalid': 0 };
+            if (!kpiData || kpiData.length === 0) return statusCounts;
+
+            kpiData.forEach(item => {
+                Object.keys(item)
+                    .filter(key => kpiNameMap[key])
+                    .forEach(kpiKey => {
+                        const value = item[kpiKey];
+                        const status = getKpiStatus(kpiKey, value);
+                        statusCounts[status]++;
+                    });
+            });
+            console.log('Status counts:', statusCounts);
+            return statusCounts;
+        }
+
+        function renderStatusPieChart(process, statusCounts) {
+            const ctx = document.getElementById(`${process}StatusPieChart`).getContext('2d');
+
+            if (statusPieChartInstances[process]) {
+                statusPieChartInstances[process].destroy();
+            }
+
+            statusPieChartInstances[process] = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['On Target', 'Needs Attention', 'Below Target', 'N/A', 'Invalid'],
+                    datasets: [{
+                        data: [statusCounts['On Target'], statusCounts['Needs Attention'], statusCounts['Below Target'], statusCounts['N/A'], statusCounts['Invalid']],
+                        backgroundColor: [
+                            '#16a34a',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(159, 162, 180, 0.8)',
+                            'rgba(220, 38, 38, 0.8)'
+                        ],
+                        borderColor: [
+                            '#00A65A',
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(159, 162, 180, 1)',
+                            'rgba(220, 38, 38, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#E5E7EB'
                             }
-                        }, 
-                        y: { 
-                            display: false,
-                            grid: {
-                                display: false
-                            }
-                        } 
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
+                        },
+                        title: {
+                            display: true,
+                            text: `${process.toUpperCase()} KPI Status Overview`,
+                            color: '#1F2937'
+                        }
                     }
                 }
             });
         }
 
-        // Show full trend chart
+        function calculateYoyCounts(currentQuarterData, previousYearSameQuarterData) {
+            let yoyCounts = { 'Improved': 0, 'Declined': 0, 'Stable': 0, 'N/A': 0 };
+            if (!currentQuarterData || !previousYearSameQuarterData) return yoyCounts;
+
+            Object.keys(currentQuarterData)
+                .filter(key => kpiNameMap[key])
+                .forEach(kpiKey => {
+                    const currentVal = currentQuarterData[kpiKey];
+                    const prevVal = previousYearSameQuarterData[kpiKey];
+
+                    if (currentVal === null || prevVal === null || currentVal === undefined || prevVal === undefined || isNaN(currentVal) || isNaN(prevVal)) {
+                        yoyCounts['N/A']++;
+                        return;
+                    }
+
+                    const trend = getTrendStatus(currentVal, prevVal, kpiKey);
+                    yoyCounts[trend]++;
+                });
+            console.log('YOY counts:', yoyCounts);
+            return yoyCounts;
+        }
+
+        function renderYoyPieChart(process, yoyCounts) {
+            const ctx = document.getElementById(`${process}YoyPieChart`).getContext('2d');
+
+            if (yoyPieChartInstances[process]) {
+                yoyPieChartInstances[process].destroy();
+            }
+
+            yoyPieChartInstances[process] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Improved', 'Declined', 'Stable', 'N/A'],
+                    datasets: [{
+                        data: [yoyCounts.Improved, yoyCounts.Declined, yoyCounts.Stable, yoyCounts['N/A']],
+                        backgroundColor: [
+                            '#16a34a',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(159, 162, 180, 0.8)'
+                        ],
+                        borderColor: [
+                            '#00A65A',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(159, 162, 180, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#E5E7EB'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `${process.toUpperCase()} Year-over-Year Performance`,
+                            color: '#1F2937'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadKPIs(process, year, quarter) {
+            showLoading(true);
+            try {
+                let data = fullDatasetCache[process];
+                if (!data) {
+                    console.log(`Fetching data for ${process} from ${API_BASE_URL}/${process}`);
+                    const response = await fetch(`${API_BASE_URL}/${process}`, {
+                        headers: { 'Authorization': AUTH_CREDENTIALS }
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    data = await response.json();
+                    console.log(`Received data for ${process}:`, data);
+                    fullDatasetCache[process] = data;
+                }
+
+                if (!data || !Array.isArray(data) || data.length === 0) {
+                    console.warn(`No valid data received for ${process}`);
+                    const container = document.getElementById(`${process}-kpis`).querySelector('tbody');
+                    container.innerHTML = `<tr><td colspan="6" class="text-gray-600 dark:text-gray-400 text-center">No data available for ${process.toUpperCase()}.</td></tr>`;
+                    renderStatusPieChart(process, { 'On Target': 0, 'Needs Attention': 0, 'Below Target': 0, 'N/A': 0, 'Invalid': 0 });
+                    renderYoyPieChart(process, { 'Improved': 0, 'Declined': 0, 'Stable': 0, 'N/A': 0 });
+                    showNotification(`No data available for ${process.toUpperCase()}.`, "warning");
+                    return;
+                }
+
+                let filteredData = data.filter(item => {
+                    if (!item.quarter || typeof item.quarter !== 'string') return false;
+                    const itemYear = extractYearFromQuarter(item.quarter);
+                    const itemQuarterPart = item.quarter.substring(item.quarter.indexOf('Q'));
+                    return itemYear === parseInt(year) && (quarter === '' || itemQuarterPart === quarter);
+                });
+
+                filteredData.sort((a, b) => {
+                    const yearA = extractYearFromQuarter(a.quarter);
+                    const qtrA = parseInt(a.quarter.substring(a.quarter.indexOf('Q') + 1));
+                    const yearB = extractYearFromQuarter(b.quarter);
+                    const qtrB = parseInt(b.quarter.substring(b.quarter.indexOf('Q') + 1));
+
+                    if (yearA !== yearB) return yearB - yearA;
+                    return qtrB - qtrA;
+                });
+
+                populateKPIs(filteredData, process, year, quarter);
+
+                const statusCounts = calculateStatusCounts(filteredData);
+                renderStatusPieChart(process, statusCounts);
+
+                const currentQuarterData = filteredData[0];
+                const previousYear = parseInt(year) - 1;
+                const previousQuarterFullString = quarter ? `${previousYear}${quarter}` : (filteredData[0] ? filteredData[0].quarter.split('Q')[1] : '');
+                const previousYearSameQuarterData = data.find(item => item.quarter === previousQuarterFullString);
+                const yoyCounts = calculateYoyCounts(currentQuarterData, previousYearSameQuarterData);
+                renderYoyPieChart(process, yoyCounts);
+
+            } catch (error) {
+                console.error(`Error loading ${process} KPIs:`, error);
+                showNotification(`Failed to load ${process.toUpperCase()} KPIs: ${error.message}`, "error");
+                const container = document.getElementById(`${process}-kpis`).querySelector('tbody');
+                container.innerHTML = `<tr><td colspan="6" class="text-red-500 dark:text-red-400 text-center">Error loading data: ${error.message}</td></tr>`;
+                renderStatusPieChart(process, { 'On Target': 0, 'Needs Attention': 0, 'Below Target': 0, 'N/A': 0, 'Invalid': 0 });
+                renderYoyPieChart(process, { 'Improved': 0, 'Declined': 0, 'Stable': 0, 'N/A': 0 });
+            } finally {
+                showLoading(false);
+            }
+        }
+
         async function showTrendChart(kpiName, process) {
             showLoading(true);
-            
+            const trendModal = document.getElementById('trend-modal');
+            const kpiTrendChartCanvas = document.getElementById('kpiTrendChart');
+            const trendKpiTitle = document.getElementById('trend-kpi-title');
+
             try {
-                let kpis = fullDatasetCache[process];
-                
-                if (!kpis) {
-                    const response = await fetch(`${API_BASE_URL}/${process}`);
+                const displayKpiName = kpiNameMap[kpiName] || kpiName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                trendKpiTitle.textContent = `${displayKpiName} Trend for ${process.toUpperCase()}`;
+
+                let data = fullDatasetCache[process];
+                if (!data) {
+                    console.log(`Fetching data for trend chart: ${process}/${kpiName}`);
+                    const response = await fetch(`${API_BASE_URL}/${process}`, {
+                        headers: { 'Authorization': AUTH_CREDENTIALS }
+                    });
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    kpis = await response.json();
-                    fullDatasetCache[process] = kpis;
+                    data = await response.json();
+                    console.log(`Trend chart data for ${process}:`, data);
+                    fullDatasetCache[process] = data;
                 }
-                
-                const sortedKpis = [...kpis].sort((a, b) => a.quarter.localeCompare(b.quarter));
-                const quarters = sortedKpis.map(kpi => formatQuarterDisplay(kpi.quarter));
-                const values = sortedKpis.map(kpi => kpi[kpiName]);
-                
-                document.getElementById('modal-title').textContent = `${kpiNameMap[kpiName] || kpiName} Trend (Full Period)`;
-                
-                const ctx = document.getElementById('trend-chart').getContext('2d');
-                
-                // Set higher DPI
-                const dpi = window.devicePixelRatio || 1;
-                const chartContainer = document.querySelector('.chart-container');
-                ctx.canvas.style.width = '100%';
-                ctx.canvas.style.height = '100%';
-                ctx.canvas.width = chartContainer.offsetWidth * dpi;
-                ctx.canvas.height = chartContainer.offsetHeight * dpi;
-                
-                if (chartInstances.trendChart) {
-                    chartInstances.trendChart.destroy();
+
+                if (!data || !Array.isArray(data) || data.length === 0) {
+                    throw new Error(`No data available for ${process} trend chart.`);
                 }
-                
-                chartInstances.trendChart = new Chart(ctx, {
+
+                data.sort((a, b) => {
+                    if (!a.quarter || !b.quarter) return 0;
+                    const yearA = extractYearFromQuarter(a.quarter) || 0;
+                    const qtrA = a.quarter && a.quarter.includes('Q') ? parseInt(a.quarter.substring(a.quarter.indexOf('Q') + 1)) : 0;
+                    const yearB = extractYearFromQuarter(b.quarter) || 0;
+                    const qtrB = b.quarter && b.quarter.includes('Q') ? parseInt(b.quarter.substring(b.quarter.indexOf('Q') + 1)) : 0;
+
+                    if (yearA !== yearB) return yearA - yearB;
+                    return qtrA - qtrB;
+                });
+
+                const validData = data.filter(item => item[kpiName] !== null && item[kpiName] !== undefined && !isNaN(item[kpiName]));
+                console.log(`Valid data points for ${process}/${kpiName}:`, validData);
+
+                if (validData.length < 1) {
+                    throw new Error(`No valid data points available for ${kpiName} trend chart.`);
+                }
+
+                const labels = validData.map(item => formatQuarterDisplay(item.quarter));
+                const kpiValues = validData.map(item => parseFloat(item[kpiName]));
+
+                // Destroy existing trend chart instance if it exists
+                if (kpiTrendChartInstance) {
+                    kpiTrendChartInstance.destroy();
+                    kpiTrendChartInstance = null;
+                }
+
+                kpiTrendChartInstance = new Chart(kpiTrendChartCanvas, {
                     type: 'line',
                     data: {
-                        labels: quarters,
+                        labels: labels,
                         datasets: [{
-                            label: kpiNameMap[kpiName] || kpiName,
-                            data: values,
-                            borderColor: '#2E7D32',
-                            borderWidth: 3 * dpi,
-                            backgroundColor: 'rgba(46, 125, 50, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4 * dpi,
-                            pointBackgroundColor: '#2E7D32',
-                            pointHoverRadius: 6 * dpi,
-                            segment: {
-                                borderColor: ctx => {
-                                    const prev = ctx.p0.parsed.y;
-                                    const curr = ctx.p1.parsed.y;
-                                    return curr >= prev ? '#2E7D32' : '#DC2626';
-                                }
-                            }
+                            label: displayKpiName,
+                            data: kpiValues,
+                            borderColor: '#00A65A',
+                            tension: 0.1,
+                            fill: false,
+                            pointRadius: validData.length === 1 ? 8 : 5,
+                            pointBackgroundColor: '#00A65A',
+                            hoverRadius: validData.length === 1 ? 10 : 7
                         }]
                     },
-                    plugins: [{
-                        id: 'trendline',
-                        afterDraw: function(chart) {
-                            if (values.length > 3) {
-                                const ctx = chart.ctx;
-                                const dataset = chart.data.datasets[0];
-                                const xAxis = chart.scales.x;
-                                const yAxis = chart.scales.y;
-                                
-                                // Calculate trend line
-                                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-                                const n = dataset.data.length;
-                                
-                                dataset.data.forEach((value, index) => {
-                                    sumX += index;
-                                    sumY += value;
-                                    sumXY += index * value;
-                                    sumXX += index * index;
-                                });
-                                
-                                const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-                                const intercept = (sumY - slope * sumX) / n;
-                                
-                                // Draw trend line
-                                ctx.beginPath();
-                                ctx.strokeStyle = '#3B82F6';
-                                ctx.lineWidth = 2 * dpi;
-                                ctx.setLineDash([5 * dpi, 3 * dpi]);
-                                
-                                const firstX = xAxis.getPixelForValue(0);
-                                const lastX = xAxis.getPixelForValue(n - 1);
-                                const firstY = yAxis.getPixelForValue(intercept);
-                                const lastY = yAxis.getPixelForValue(slope * (n - 1) + intercept);
-                                
-                                ctx.moveTo(firstX, firstY);
-                                ctx.lineTo(lastX, lastY);
-                                ctx.stroke();
-                                ctx.setLineDash([]);
-                                
-                                // Add trend label
-                                const trendValue = ((slope * (n - 1) + intercept) - intercept) / intercept * 100;
-                                const trendText = `Trend: ${trendValue.toFixed(1)}% ${trendValue >= 0 ? '↑' : '↓'}`;
-                                
-                                ctx.fillStyle = '#3B82F6';
-                                ctx.font = `bold ${12 * dpi}px Inter`;
-                                ctx.textAlign = 'right';
-                                ctx.fillText(trendText, lastX - 10 * dpi, lastY - 10 * dpi);
-                            }
-                        }
-                    }],
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { 
-                                position: 'top',
+                            legend: {
+                                display: true,
                                 labels: {
-                                    font: {
-                                        size: 14 * dpi,
-                                        weight: 'bold'
+                                    color: '#E5E7EB'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${formatValue(kpiName, context.raw)}`;
                                     }
                                 }
                             },
-                            tooltip: { 
-                                mode: 'index',
-                                intersect: false,
-                                bodyFont: {
-                                    size: 14 * dpi,
-                                    weight: 'bold'
-                                },
-                                titleFont: {
-                                    size: 12 * dpi
-                                },
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        label += formatValue(kpiName, context.parsed.y);
-                                        return label;
-                                    }
-                                }
+                            title: {
+                                display: validData.length === 1,
+                                text: validData.length === 1 ? 'Only one data point available' : '',
+                                color: '#1F2937'
                             }
                         },
                         scales: {
                             x: {
-                                grid: {
-                                    display: false
+                                title: {
+                                    display: true,
+                                    text: 'Quarter',
+                                    color: '#D1D5DB'
                                 },
                                 ticks: {
-                                    font: {
-                                        size: 12 * dpi
-                                    }
+                                    color: '#9CA3AF'
+                                },
+                                grid: {
+                                    color: 'rgba(100, 100, 100, 0.2)'
                                 }
                             },
                             y: {
-                                beginAtZero: kpiName.includes('pct') ? true : false,
+                                title: {
+                                    display: true,
+                                    text: percentageKpis.includes(kpiName) ? 'Percentage (%)' : 'Days',
+                                    color: '#D1D5DB'
+                                },
                                 ticks: {
-                                    font: {
-                                        size: 12 * dpi
-                                    },
+                                    color: '#9CA3AF',
                                     callback: function(value) {
                                         return formatValue(kpiName, value);
                                     }
+                                },
+                                grid: {
+                                    color: 'rgba(100, 100, 100, 0.2)'
                                 }
                             }
                         }
                     }
                 });
-                
-                document.getElementById('trend-modal').classList.remove('hidden');
+
+                trendModal.classList.remove('hidden');
+                setTimeout(() => {
+                    trendModal.classList.add('opacity-100');
+                    trendModal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0');
+                    trendModal.querySelector('.modal-content').classList.add('scale-100', 'opacity-100');
+                }, 10);
             } catch (error) {
-                console.error("Failed to load trend data:", error);
-                showNotification("Failed to load trend data. Please check console for details.", "error");
+                console.error(`Error showing trend chart for ${kpiName} in ${process}:`, error);
+                showNotification(`Failed to display trend chart for ${kpiNameMap[kpiName] || kpiName}: ${error.message}`, "error");
+                if (kpiTrendChartInstance) {
+                    kpiTrendChartInstance.destroy();
+                    kpiTrendChartInstance = null;
+                }
+                kpiTrendChartCanvas.getContext('2d').clearRect(0, 0, kpiTrendChartCanvas.width, kpiTrendChartCanvas.height);
+                kpiTrendChartCanvas.getContext('2d').font = '16px Arial';
+                kpiTrendChartCanvas.getContext('2d').fillStyle = '#1F2937';
+                kpiTrendChartCanvas.getContext('2d').fillText('No data available for trend chart', 20, 200);
             } finally {
                 showLoading(false);
             }
         }
 
-        // Update status chart
-        function updateStatusChart(good, warning, critical) {
-            const ctx = document.getElementById('status-chart').getContext('2d');
-            
-            // Set higher DPI
-            const dpi = window.devicePixelRatio || 1;
-            ctx.canvas.style.width = '100%';
-            ctx.canvas.style.height = '100%';
-            ctx.canvas.width = ctx.canvas.offsetWidth * dpi;
-            ctx.canvas.height = ctx.canvas.offsetHeight * dpi;
-            
-            if (chartInstances.statusChart) {
-                chartInstances.statusChart.destroy();
-            }
-            
-            chartInstances.statusChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['On Target', 'Needs Attention', 'Below Target'],
-                    datasets: [{
-                        data: [good, warning, critical],
-                        backgroundColor: [
-                            '#2E7D32', // Green
-                            '#F59E0B', // Orange
-                            '#DC2626'  // Red
-                        ],
-                        borderWidth: 1 * dpi
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: {
-                                    size: 12 * dpi
-                                }
-                            }
-                        }
-                    }
+        function populateYearFilter(currentYear = new Date().getFullYear()) {
+            const yearFilter = document.getElementById('year-filter');
+            yearFilter.innerHTML = '';
+
+            const years = new Set();
+            ['ma', 'ct', 'gmp'].forEach(process => {
+                if (fullDatasetCache[process]) {
+                    fullDatasetCache[process].forEach(item => {
+                        const year = extractYearFromQuarter(item.quarter);
+                        if (year) years.add(year);
+                    });
                 }
             });
-        }
 
-        // Update YoY chart
-        function updateYoYChart(improved, declined) {
-            const ctx = document.getElementById('yoy-chart').getContext('2d');
-            
-            // Set higher DPI
-            const dpi = window.devicePixelRatio || 1;
-            ctx.canvas.style.width = '100%';
-            ctx.canvas.style.height = '100%';
-            ctx.canvas.width = ctx.canvas.offsetWidth * dpi;
-            ctx.canvas.height = ctx.canvas.offsetHeight * dpi;
-            
-            if (chartInstances.yoyChart) {
-                chartInstances.yoyChart.destroy();
+            const sortedYears = Array.from(years).sort((a, b) => b - a);
+
+            if (sortedYears.length === 0) {
+                sortedYears.push(currentYear);
             }
-            
-            chartInstances.yoyChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Improved', 'Declined'],
-                    datasets: [{
-                        label: 'Year-over-Year Change',
-                        data: [improved, declined],
-                        backgroundColor: [
-                            '#2E7D32', // Green
-                            '#DC2626'  // Red
-                        ],
-                        borderWidth: 1 * dpi
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
+
+            sortedYears.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === currentYear) {
+                    option.selected = true;
                 }
+                yearFilter.appendChild(option);
             });
+
+            if (!yearFilter.value && sortedYears.length > 0) {
+                yearFilter.value = sortedYears[0];
+            } else if (sortedYears.length === 0) {
+                const option = document.createElement('option');
+                option.value = currentYear;
+                option.textContent = currentYear;
+                yearFilter.appendChild(option);
+                yearFilter.value = currentYear;
+            }
         }
 
-        // Analyze KPI trend for critical alerts
-        function analyzeKPITrend(process, kpiName, currentYear) {
-            if (!fullDatasetCache[process]) return null;
-            
-            const sortedKpis = [...fullDatasetCache[process]].sort((a, b) => a.quarter.localeCompare(b.quarter));
-            const kpiData = sortedKpis.filter(kpi => kpi[kpiName] !== null && kpi[kpiName] !== undefined);
-            
-            if (kpiData.length < 2) return null;
-            
-            // Check for no improvement or decline over last 4 quarters
-            const lastFourQuarters = kpiData.slice(-4);
-            let noImprovementCount = 0;
-            let declineCount = 0;
-            
-            for (let i = 1; i < lastFourQuarters.length; i++) {
-                const current = lastFourQuarters[i][kpiName];
-                const previous = lastFourQuarters[i - 1][kpiName];
-                
-                if (kpiName.includes('time') || kpiName.includes('duration')) {
-                    // For time-based KPIs, lower is better
-                    if (current >= previous) noImprovementCount++;
-                    if (current > previous) declineCount++;
-                } else {
-                    // For percentage-based KPIs, higher is better
-                    if (current <= previous) noImprovementCount++;
-                    if (current < previous) declineCount++;
-                }
-            }
-            
-            // Check year-over-year decline
-            const currentYearData = kpiData.filter(kpi => extractYearFromQuarter(kpi.quarter) === parseInt(currentYear));
-            const prevYearData = kpiData.filter(kpi => extractYearFromQuarter(kpi.quarter) === parseInt(currentYear) - 1);
-            
-            let yoyDecline = null;
-            if (currentYearData.length > 0 && prevYearData.length > 0) {
-                const currentLatest = currentYearData.reduce((latest, curr) => {
-                    return curr.quarter > latest.quarter ? curr : latest;
-                }, {quarter: '', [kpiName]: null});
-                
-                const prevLatest = prevYearData.reduce((latest, curr) => {
-                    return curr.quarter > latest.quarter ? curr : latest;
-                }, {quarter: '', [kpiName]: null});
-                
-                if (currentLatest[kpiName] !== null && prevLatest[kpiName] !== null) {
-                    if (kpiName.includes('time') || kpiName.includes('duration')) {
-                        yoyDecline = ((currentLatest[kpiName] - prevLatest[kpiName]) / prevLatest[kpiName]) * 100;
-                    } else {
-                        yoyDecline = ((prevLatest[kpiName] - currentLatest[kpiName]) / prevLatest[kpiName]) * 100;
+        function showExportModal() {
+            return new Promise((resolve, reject) => {
+                const modal = document.getElementById('export-modal');
+                const yearCheckboxesContainer = document.getElementById('year-checkboxes');
+                const cancelBtn = document.getElementById('cancel-export-btn');
+                const confirmBtn = document.getElementById('confirm-export-btn');
+                const closeBtn = document.getElementById('close-export-modal');
+
+                yearCheckboxesContainer.innerHTML = '';
+
+                const allYears = new Set();
+                ['ma', 'ct', 'gmp'].forEach(process => {
+                    if (fullDatasetCache[process]) {
+                        fullDatasetCache[process].forEach(item => {
+                            const year = extractYearFromQuarter(item.quarter);
+                            if (year) allYears.add(year);
+                        });
                     }
+                });
+                const sortedAllYears = Array.from(allYears).sort((a, b) => b - a);
+
+                if (sortedAllYears.length === 0) {
+                    showNotification("No data available to select years for export.", "warning");
+                    resolve(null);
+                    return;
                 }
-            }
-            
-            const latestData = kpiData[kpiData.length - 1];
-            const latestQuarter = formatQuarterDisplay(latestData.quarter);
-            const latestValue = formatValue(kpiName, latestData[kpiName]);
-            
-            // Generate alert message
-            if (noImprovementCount >= 3) {
-                return {
-                    name: kpiNameMap[kpiName] || kpiName,
-                    message: `${kpiNameMap[kpiName] || kpiName} has not improved over the last ${noImprovementCount} quarters, with latest value at ${latestValue} in ${latestQuarter}.`
+
+                sortedAllYears.forEach(year => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center';
+                    div.innerHTML = `
+                        <input type="checkbox" id="year-${year}" value="${year}" class="form-checkbox h-5 w-5 text-[#00A65A] rounded focus:ring-[#00A65A] dark:bg-gray-700 dark:border-gray-600">
+                        <label for="year-${year}" class="ml-2 text-gray-700 dark:text-gray-300">${year}</label>
+                    `;
+                    yearCheckboxesContainer.appendChild(div);
+                });
+
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.add('opacity-100');
+                    modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0');
+                    modal.querySelector('.modal-content').classList.add('scale-100', 'opacity-100');
+                }, 10);
+
+                const cleanup = () => {
+                    cancelBtn.removeEventListener('click', onCancel);
+                    confirmBtn.removeEventListener('click', onConfirm);
+                    closeBtn.removeEventListener('click', onCancel);
+                    modal.removeEventListener('click', onOutsideClick);
                 };
-            } else if (declineCount >= 3) {
-                return {
-                    name: kpiNameMap[kpiName] || kpiName,
-                    message: `${kpiNameMap[kpiName] || kpiName} has consistently declined over the last ${declineCount} quarters, with latest value at ${latestValue} in ${latestQuarter}.`
-                };
-            } else if (yoyDecline !== null && yoyDecline > 10) {
-                return {
-                    name: kpiNameMap[kpiName] || kpiName,
-                    message: `${kpiNameMap[kpiName] || kpiName} has declined by ${yoyDecline.toFixed(1)}% compared to the previous year, with latest value at ${latestValue} in ${latestQuarter}.`
-                };
-            }
-            
-            return null;
-        }
 
-        // Calculate KPI status summary
-        function calculateKPIStatusSummary(kpis, process, year) {
-            const summary = {
-                good: 0,
-                warning: 0,
-                critical: 0,
-                criticalAlerts: []
-            };
-            
-            if (!kpis || kpis.length === 0) return summary;
-            
-            const kpiNames = Object.keys(kpis[0]).filter(
-                key => !['id', 'quarter', 'run_date'].includes(key)
-            );
-            
-            kpiNames.forEach(kpiName => {
-                const latestData = kpis.reduce((latest, current) => {
-                    return current.quarter > latest.quarter ? current : latest;
-                }, {quarter: '', [kpiName]: null});
-                
-                const status = determineStatus(kpiName, latestData[kpiName]);
-                if (status === 'good') summary.good++;
-                else if (status === 'warning') summary.warning++;
-                else if (status === 'critical') {
-                    summary.critical++;
-                    const trendAnalysis = analyzeKPITrend(process, kpiName, year);
-                    if (trendAnalysis) {
-                        summary.criticalAlerts.push(trendAnalysis);
+                const onCancel = () => {
+                    modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0');
+                    modal.querySelector('.modal-content').classList.remove('scale-100', 'opacity-100');
+                    modal.addEventListener('transitionend', function handler() {
+                        modal.classList.add('hidden');
+                        modal.removeEventListener('transitionend', handler);
+                        cleanup();
+                        resolve(null);
+                    }, { once: true });
+                };
+
+                const onConfirm = () => {
+                    const selectedYears = Array.from(modal.querySelectorAll('input[type="checkbox"]:checked'))
+                        .map(checkbox => parseInt(checkbox.value));
+
+                    modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0');
+                    modal.querySelector('.modal-content').classList.remove('scale-100', 'opacity-100');
+                    modal.addEventListener('transitionend', function handler() {
+                        modal.classList.add('hidden');
+                        modal.removeEventListener('transitionend', handler);
+                        cleanup();
+                        resolve(selectedYears);
+                    }, { once: true });
+                };
+
+                const onOutsideClick = (e) => {
+                    if (e.target === modal) {
+                        onCancel();
                     }
-                }
+                };
+
+                cancelBtn.addEventListener('click', onCancel);
+                confirmBtn.addEventListener('click', onConfirm);
+                closeBtn.addEventListener('click', onCancel);
+                modal.addEventListener('click', onOutsideClick);
             });
-            
-            return summary;
         }
 
-        // Calculate year-over-year comparison
-        async function calculateYoYComparison(process, year) {
-            const prevYear = parseInt(year) - 1;
-            const comparison = {
-                improved: 0,
-                declined: 0,
-                totalKpis: 0
-            };
-            
-            if (!fullDatasetCache[process]) return comparison;
-            
-            const currentYearData = fullDatasetCache[process].filter(item => {
-                return extractYearFromQuarter(item.quarter) === parseInt(year);
-            });
-            
-            const prevYearData = fullDatasetCache[process].filter(item => {
-                return extractYearFromQuarter(item.quarter) === prevYear;
-            });
-            
-            if (!currentYearData.length || !prevYearData.length) return comparison;
-            
-            const kpiNames = Object.keys(currentYearData[0]).filter(
-                key => !['id', 'quarter', 'run_date'].includes(key)
-            );
-            
-            comparison.totalKpis = kpiNames.length;
-            
-            kpiNames.forEach(kpiName => {
-                const currLatest = currentYearData.reduce((latest, curr) => {
-                    return curr.quarter > latest.quarter ? curr : latest;
-                }, {quarter: '', [kpiName]: null});
-                
-                const prevLatest = prevYearData.reduce((latest, curr) => {
-                    return curr.quarter > latest.quarter ? curr : latest;
-                }, {quarter: '', [kpiName]: null});
-                
-                if (currLatest[kpiName] !== null && prevLatest[kpiName] !== null) {
-                    const change = currLatest[kpiName] - prevLatest[kpiName];
-                    if (change > 0) comparison.improved++;
-                    else if (change < 0) comparison.declined++;
-                }
-            });
-            
-            return comparison;
-        }
-
-        // Calculate compliance rate
-        function calculateComplianceRate(kpis, process) {
-            const complianceKpis = {
-                ma: ['pct_granted_within_90_days'],
-                ct: ['pct_gcp_compliant'],
-                gmp: ['pct_facilities_compliant']
-            };
-            
-            if (!kpis || kpis.length === 0) return 0;
-            
-            const relevantKpis = kpis.filter(kpi => {
-                return complianceKpis[process].some(key => kpi[key] !== null && kpi[key] !== undefined);
-            });
-            
-            if (!relevantKpis.length) return 0;
-            
-            const totalCompliance = relevantKpis.reduce((sum, kpi) => {
-                const value = kpi[complianceKpis[process][0]];
-                return sum + (value !== null && value !== undefined ? value : 0);
-            }, 0);
-            
-            return (totalCompliance / relevantKpis.length) * 100;
-        }
-
-        // Update insights panels
-        async function updateInsightsPanels(process, year, kpis) {
-            // Update KPI Status Summary
-            const statusSummary = calculateKPIStatusSummary(kpis, process, year);
-            document.getElementById('kpi-status-good').textContent = statusSummary.good;
-            document.getElementById('kpi-status-warning').textContent = statusSummary.warning;
-            document.getElementById('kpi-status-critical').textContent = statusSummary.critical;
-            
-            // Update status chart
-            updateStatusChart(statusSummary.good, statusSummary.warning, statusSummary.critical);
-            
-            const alertsContainer = document.getElementById('critical-alerts');
-            alertsContainer.innerHTML = statusSummary.criticalAlerts.length
-                ? statusSummary.criticalAlerts.map(alert => `
-                    <div class="alert-item text-critical">
-                        ${alert.name}
-                        <span>${alert.message}</span>
-                    </div>
-                `).join('')
-                : '<p class="text-gray-500 dark:text-gray-400">No critical alerts</p>';
-            
-            // Update Year-over-Year Comparison
-            const yoy = await calculateYoYComparison(process, year);
-            document.getElementById('yoy-improved').textContent = yoy.improved;
-            document.getElementById('yoy-declined').textContent = yoy.declined;
-            document.getElementById('total-kpis').textContent = yoy.totalKpis;
-            document.getElementById('compliance-rate').textContent = `${calculateComplianceRate(kpis, process).toFixed(1)}%`;
-            
-            // Update YoY chart
-            updateYoYChart(yoy.improved, yoy.declined);
-        }
-
-        // Load KPIs for a process and year
-        async function loadKPIs(process, year) {
-            if (!year) {
-                console.warn("No year selected");
+        async function exportSelectedYears(selectedYears) {
+            if (selectedYears.length === 0) {
+                showNotification("Please select at least one year to export.", "warning");
                 return;
             }
-            
+
             showLoading(true);
-            
             try {
-                let data = fullDatasetCache[process];
-                
-                if (!data) {
-                    const response = await fetch(`${API_BASE_URL}/${process}`);
+                const processes = ['ma', 'ct', 'gmp'];
+                const wb = XLSX.utils.book_new();
+
+                for (const process of processes) {
+                    let data = fullDatasetCache[process];
+                    if (!data) {
+                        const response = await fetch(`${API_BASE_URL}/${process}`, {
+                            headers: { 'Authorization': AUTH_CREDENTIALS }
+                        });
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        data = await response.json();
+                        fullDatasetCache[process] = data;
+                    }
+
+                    const filteredData = data.filter(item => {
+                        const year = extractYearFromQuarter(item.quarter);
+                        return selectedYears.includes(year);
+                    });
+
+                    if (filteredData.length === 0) continue;
+
+                    filteredData.sort((a, b) => {
+                        const yearA = extractYearFromQuarter(a.quarter);
+                        const qtrA = parseInt(a.quarter.substring(a.quarter.indexOf('Q') + 1));
+                        const yearB = extractYearFromQuarter(b.quarter);
+                        const qtrB = parseInt(b.quarter.substring(b.quarter.indexOf('Q') + 1));
+
+                        if (yearA !== yearB) return yearA - yearB;
+                        return qtrA - qtrB;
+                    });
+
+                    const wsData = filteredData.map(item => {
+                        const row = { Quarter: formatQuarterDisplay(item.quarter) };
+                        Object.keys(item)
+                            .filter(key => !['id', 'quarter', 'run_date', 'year'].includes(key) && kpiNameMap[key])
+                            .forEach(key => {
+                                row[kpiNameMap[key] || key] = formatValue(key, item[key]);
+                            });
+                        return row;
+                    });
+
+                    const ws = XLSX.utils.json_to_sheet(wsData);
+                    XLSX.utils.book_append_sheet(wb, ws, process.toUpperCase());
+                }
+
+                if (wb.SheetNames.length === 0) {
+                    showNotification("No data available to export for selected years.", "warning");
+                    return;
+                }
+
+                const yearRange = selectedYears.length === 1 ? selectedYears[0] :
+                                `${Math.min(...selectedYears)}-${Math.max(...selectedYears)}`;
+                XLSX.writeFile(wb, `kpi_data_${yearRange}.xlsx`);
+                showNotification(`KPI data for selected years exported successfully!`, "success");
+
+            } catch (error) {
+                console.error("Error exporting data:", error);
+                showNotification("Failed to export data for selected years.", "error");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function exportAllData() {
+            showLoading(true);
+            try {
+                const processes = ['ma', 'ct', 'gmp'];
+                const wb = XLSX.utils.book_new();
+
+                for (const process of processes) {
+                    let data = fullDatasetCache[process];
+                    if (!data) {
+                        const response = await fetch(`${API_BASE_URL}/${process}`, {
+                            headers: { 'Authorization': AUTH_CREDENTIALS }
+                        });
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        data = await response.json();
+                        fullDatasetCache[process] = data;
+                    }
+
+                    if (data.length === 0) continue;
+
+                    data.sort((a, b) => {
+                        const yearA = extractYearFromQuarter(a.quarter);
+                        const qtrA = parseInt(a.quarter.substring(a.quarter.indexOf('Q') + 1));
+                        const yearB = extractYearFromQuarter(b.quarter);
+                        const qtrB = parseInt(b.quarter.substring(b.quarter.indexOf('Q') + 1));
+
+                        if (yearA !== yearB) return yearA - yearB;
+                        return qtrA - qtrB;
+                    });
+
+                    const wsData = data.map(item => {
+                        const row = { Quarter: formatQuarterDisplay(item.quarter) };
+                        Object.keys(item)
+                            .filter(key => !['id', 'quarter', 'run_date', 'year'].includes(key) && kpiNameMap[key])
+                            .forEach(key => {
+                                row[kpiNameMap[key] || key] = formatValue(key, item[key]);
+                            });
+                        return row;
+                    });
+
+                    const ws = XLSX.utils.json_to_sheet(wsData);
+                    XLSX.utils.book_append_sheet(wb, ws, process.toUpperCase());
+                }
+
+                if (wb.SheetNames.length === 0) {
+                    showNotification("No data available to export.", "warning");
+                    return;
+                }
+
+                XLSX.writeFile(wb, `kpi_data_all_years.xlsx`);
+                showNotification("All KPI data exported successfully!", "success");
+
+            } catch (error) {
+                console.error("Error exporting all data:", error);
+                showNotification("Failed to export all data.", "error");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function fetchInitialDataAndPopulateFilters() {
+            showLoading(true);
+            try {
+                const processes = ['ma', 'ct', 'gmp'];
+                for (const process of processes) {
+                    const response = await fetch(`${API_BASE_URL}/${process}`, {
+                        headers: { 'Authorization': AUTH_CREDENTIALS }
+                    });
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    data = await response.json();
+                    const data = await response.json();
+                    console.log(`Initial data for ${process}:`, data);
                     fullDatasetCache[process] = data;
                 }
-                
-                const filteredData = data.filter(item => {
-                    const itemYear = extractYearFromQuarter(item.quarter);
-                    return itemYear === parseInt(year);
-                });
-                
-                renderKPITable(process, filteredData);
-                await updateInsightsPanels(process, year, filteredData);
+                populateYearFilter();
             } catch (error) {
-                console.error(`Failed to fetch ${process} KPIs:`, error);
-                document.getElementById(`${process}-kpi-table`).innerHTML = `
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-red-500">
-                            Failed to load data. Please try again later.
-                        </td>
-                    </tr>
-                `;
+                console.error("Error fetching initial data:", error);
+                showNotification("Failed to fetch initial data for filters.", "error");
             } finally {
                 showLoading(false);
             }
         }
 
-        // Render KPI table with enhanced styling
-        function renderKPITable(process, kpis) {
-            const table = document.getElementById(`${process}-kpi-table`);
-            table.innerHTML = '';
-            
-            if (!kpis || kpis.length === 0) {
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center">
-                            No data available for selected year
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            const kpiNames = Object.keys(kpis[0]).filter(
-                key => !['id', 'quarter', 'run_date'].includes(key)
-            );
-            
-            if (kpiNames.length === 0) {
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-yellow-600">
-                            No KPI metrics found in the data
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            kpiNames.forEach((kpiName, index) => {
-                const latestData = kpis.reduce((latest, current) => {
-                    return current.quarter > latest.quarter ? current : latest;
-                }, {quarter: '', [kpiName]: null});
-                
-                const value = latestData[kpiName];
-                const quarter = formatQuarterDisplay(latestData.quarter);
-                const status = determineStatus(kpiName, value);
-                
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
-                row.innerHTML = `
-                    <td class="kpi-cell kpi-name-cell whitespace-normal">
-                        <span class="kpi-number">${index + 1}</span>
-                        ${kpiNameMap[kpiName] || kpiName}
-                    </td>
-                    <td class="kpi-cell whitespace-nowrap">${quarter}</td>
-                    <td class="kpi-cell whitespace-nowrap value-cell ${status}">${formatValue(kpiName, value)}</td>
-                    <td class="kpi-cell whitespace-nowrap">
-                        <span class="status-badge ${getStatusClass(status)}">${getStatusText(status)}</span>
-                    </td>
-                    <td class="kpi-cell whitespace-nowrap status-cell" data-kpi="${kpiName}" data-process="${process}">
-                        <div class="w-24 h-8" id="mini-trend-${process}-${index}"></div>
-                    </td>
-                `;
-                table.appendChild(row);
-                
-                if (fullDatasetCache[process]) {
-                    const sortedKpis = [...fullDatasetCache[process]].sort((a, b) => a.quarter.localeCompare(b.quarter));
-                    const trendData = sortedKpis.map(kpi => kpi[kpiName]);
-                    const quarterLabels = sortedKpis.map(kpi => formatQuarterDisplay(kpi.quarter));
-                    
-                    if (trendData.some(v => v !== null && v !== undefined)) {
-                        createMiniChart(`mini-trend-${process}-${index}`, trendData, quarterLabels);
-                    }
-                }
-            });
-        }
-
-        // Set up theme toggle functionality
-        function setupThemeToggle() {
-            const themeToggle = document.getElementById('theme-toggle');
-            const themeIconLight = document.getElementById('theme-icon-light');
-            const themeIconDark = document.getElementById('theme-icon-dark');
-            
-            const savedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-                document.documentElement.classList.add('dark');
-                themeIconLight.classList.remove('hidden');
-                themeIconDark.classList.add('hidden');
-            } else {
-                document.documentElement.classList.remove('dark');
-                themeIconLight.classList.add('hidden');
-                themeIconDark.classList.remove('hidden');
-            }
-            
-            themeToggle.addEventListener('click', () => {
-                const isDark = document.documentElement.classList.toggle('dark');
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                
-                if (isDark) {
-                    themeIconLight.classList.remove('hidden');
-                    themeIconDark.classList.add('hidden');
-                } else {
-                    themeIconLight.classList.add('hidden');
-                    themeIconDark.classList.remove('hidden');
-                }
-                
-                if (chartInstances.trendChart) {
-                    chartInstances.trendChart.update();
-                }
-                if (chartInstances.statusChart) {
-                    chartInstances.statusChart.update();
-                }
-                if (chartInstances.yoyChart) {
-                    chartInstances.yoyChart.update();
-                }
-            });
-        }
-
-        // Set up event listeners
         function setupEventListeners() {
             document.getElementById('enter-dashboard-btn').addEventListener('click', function() {
                 document.getElementById('landing-page').classList.add('hidden');
                 document.getElementById('dashboard-page').classList.remove('hidden');
-                
                 const year = document.getElementById('year-filter').value;
+                const quarter = document.getElementById('quarter-filter').value;
                 const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
                 if (year && activeTab) {
-                    loadKPIs(activeTab, year);
+                    loadKPIs(activeTab, year, quarter);
                 }
             });
 
@@ -1886,60 +1248,136 @@
                 btn.addEventListener('click', async function() {
                     const tab = this.getAttribute('data-tab');
                     const year = document.getElementById('year-filter').value;
-                    
+                    const quarter = document.getElementById('quarter-filter').value;
+
                     document.querySelectorAll('.tab-btn').forEach(b => {
-                        b.classList.remove('active');
-                        b.classList.remove('scale-105');
+                        b.classList.remove('active', 'scale-105', 'bg-[#00A65A]', 'text-white');
+                        b.classList.add('bg-gray-200', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-200');
                     });
-                    
-                    this.classList.add('active');
-                    this.classList.add('scale-105');
-                    setTimeout(() => {
-                        this.classList.remove('scale-105');
-                    }, 300);
-                    
+                    this.classList.add('active', 'scale-105', 'bg-[#00A65A]', 'text-white');
+                    this.classList.remove('bg-gray-200', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-200');
+                    setTimeout(() => this.classList.remove('scale-105'), 300);
+
                     document.querySelectorAll('.tab-content').forEach(c => {
                         c.classList.add('hidden');
                         c.classList.remove('animate-fadeIn');
                     });
-                    const activeTab = document.getElementById(`${tab}-tab`);
-                    activeTab.classList.remove('hidden');
-                    activeTab.classList.add('animate-fadeIn');
-                    
-                    if (year) {
-                        await loadKPIs(tab, year);
-                    }
+
+                    const activeTabContent = document.getElementById(`${tab}-tab`);
+                    activeTabContent.classList.remove('hidden');
+                    activeTabContent.classList.add('animate-fadeIn');
+
+                    if (year) await loadKPIs(tab, year, quarter);
                 });
             });
-            
+
             document.getElementById('year-filter').addEventListener('change', async function() {
                 const year = this.value;
+                const quarter = document.getElementById('quarter-filter').value;
                 const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
-                
-                if (year) {
-                    await loadKPIs(activeTab, year);
-                }
+                if (year) await loadKPIs(activeTab, year, quarter);
             });
-            
+
+            document.getElementById('quarter-filter').addEventListener('change', async function() {
+                const quarter = this.value;
+                const year = document.getElementById('year-filter').value;
+                const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+                if (year) await loadKPIs(activeTab, year, quarter);
+            });
+
             document.addEventListener('click', function(e) {
-                if (e.target.closest('.status-cell')) {
-                    const cell = e.target.closest('.status-cell');
+                const cell = e.target.closest('.trend-cell');
+                if (cell) {
                     const kpiName = cell.getAttribute('data-kpi');
                     const process = cell.getAttribute('data-process');
                     showTrendChart(kpiName, process);
                 }
             });
-            
+
             document.getElementById('close-trend-modal').addEventListener('click', function() {
-                document.getElementById('trend-modal').classList.add('hidden');
+                const modal = document.getElementById('trend-modal');
+                document.querySelector('#trend-modal .modal-content').classList.add('scale-95', 'opacity-0');
+                document.querySelector('#trend-modal .modal-content').classList.remove('scale-100', 'opacity-100');
+                modal.addEventListener('transitionend', function handler() {
+                    modal.classList.add('hidden');
+                    modal.removeEventListener('transitionend', handler);
+                    if (kpiTrendChartInstance) {
+                        kpiTrendChartInstance.destroy();
+                        kpiTrendChartInstance = null;
+                    }
+                }, { once: true });
             });
 
-            // Export buttons
-            document.getElementById('export-selected-btn').addEventListener('click', exportSelectedYears);
-            document.getElementById('export-all-btn').addEventListener('click', exportAllData);
+            document.getElementById('trend-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    document.querySelector('#trend-modal .modal-content').classList.add('scale-95', 'opacity-0');
+                    document.querySelector('#trend-modal .modal-content').classList.remove('scale-100', 'opacity-100');
+                    this.addEventListener('transitionend', function handler() {
+                        this.classList.add('hidden');
+                        this.removeEventListener('transitionend', handler);
+                        if (kpiTrendChartInstance) {
+                            kpiTrendChartInstance.destroy();
+                            kpiTrendChartInstance = null;
+                        }
+                    }, { once: true });
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !document.getElementById('trend-modal').classList.contains('hidden')) {
+                    const modal = document.getElementById('trend-modal');
+                    document.querySelector('#trend-modal .modal-content').classList.add('scale-95', 'resize-y');
+                    document.querySelector('#trend-modal .modal-content').classList.remove('scale-100', 'opacity-100');
+                    modal.addEventListener('transitionend', function handler() {
+                        modal.classList.add('hidden');
+                        modal.removeEventListener('transitionend', handler);
+                        if (kpiTrendChartInstance) {
+                            kpiTrendChartInstance.destroy();
+                            kpiTrendChartInstance = null;
+                        }
+                    }, { once: true });
+                }
+            });
+
+            const exportBtn = document.getElementById('export-btn');
+            const exportDropdown = document.getElementById('export-dropdown');
+            exportBtn.addEventListener('click', function() {
+                exportDropdown.classList.toggle('hidden');
+            });
+            document.addEventListener('click', function(event) {
+                if (!exportBtn.contains(event.target) && !exportDropdown.contains(event.target)) {
+                    exportDropdown.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('export-selected-btn').addEventListener('click', async function() {
+                exportDropdown.classList.add('hidden');
+                const selectedYears = await showExportModal();
+                if (selectedYears && selectedYears.length > 0) {
+                    await exportSelectedYears(selectedYears);
+                }
+            });
+
+            document.getElementById('export-all-btn').addEventListener('click', function() {
+                exportDropdown.classList.add('hidden');
+                exportAllData();
+            });
         }
 
-        // Initialize when DOM is loaded
+        async function initDashboard() {
+            Object.keys(fullDatasetCache).forEach(key => delete fullDatasetCache[key]); // Clear cache
+            await fetchInitialDataAndPopulateFilters();
+            setupEventListeners();
+
+            const initialActiveTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+            const initialYear = document.getElementById('year-filter').value;
+            const initialQuarter = document.getElementById('quarter-filter').value;
+
+            if (initialActiveTab && initialYear) {
+                loadKPIs(initialActiveTab, initialYear, initialQuarter);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', initDashboard);
     </script>
 </body>

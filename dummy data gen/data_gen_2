@@ -2,98 +2,190 @@ import random
 import datetime
 import mysql.connector
 from faker import Faker
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 fake = Faker()
 start_year = 2023
 end_year = 2025
 
-def quarter_months(q):
-    return {
-        1: [1, 2, 3],
-        2: [4, 5, 6],
-        3: [7, 8, 9],
-        4: [10, 11, 12]
-    }[q]
-
-def random_date_in_quarter(year, quarter):
-    month = random.choice(quarter_months(quarter))
+def random_date(year, quarter):
+    """Generate random date within specified year and quarter"""
+    month_ranges = {1: (1, 3), 2: (4, 6), 3: (7, 9), 4: (10, 12)}
+    start_month, end_month = month_ranges[quarter]
+    month = random.randint(start_month, end_month)
     day = random.randint(1, 28)
     hour = random.randint(0, 23)
     minute = random.randint(0, 59)
     return datetime.datetime(year, month, day, hour, minute)
 
 def connect_db():
-    return mysql.connector.connect(
-        host='localhost',
-        user='kpi_user',
-        password='kpipassword',
-        database='kpi_db'
-    )
+    """Connect to MySQL database with error handling"""
+    try:
+        conn = mysql.connector.connect(
+            host='localhost',
+            user='kpi_user',
+            password='kpipassword',
+            database='kpi_db'
+        )
+        return conn
+    except mysql.connector.Error as e:
+        logging.error(f"Database connection failed: {e}")
+        raise
 
-def insert_log(cursor, table, record):
-    placeholders = ", ".join(["%s"] * len(record))
-    columns = ", ".join(record.keys())
-    sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
-    cursor.execute(sql, list(record.values()))
+def generate_ma_logs(cursor, n=1000):
+    """Generate MA logs with realistic process flow and quarterly variations"""
+    app_types = ['new', 'renewal', 'variation']
+    event_sequences = {
+        'new': ['received', 'evaluated', 'fir_requested', 'fir_response_received', 'query_received', 'query_evaluated', 'granted'],
+        'renewal': ['received', 'evaluated', 'query_received', 'query_evaluated', 'granted'],
+        'variation': ['received', 'evaluated', 'granted']
+    }
+    statuses = ['on_time', 'delayed', 'within_90_days', None]
+    status_weights = [0.6, 0.2, 0.15, 0.05]  # Weighted probabilities for realistic distribution
 
-def generate_logs(cursor, table, config, total_per_year=400):
     for year in range(start_year, end_year + 1):
         for quarter in range(1, 5):
-            for _ in range(total_per_year // 4):
-                created_at = random_date_in_quarter(year, quarter)
-                record = {
-                    'application_id' if 'application_id' in config['columns'] else 'facility_id': fake.uuid4(),
-                    config['type_col']: random.choice(config['types']),
-                    'event_type': random.choice(config['event_types']),
-                    'status': random.choice(config['statuses']),
-                    config['compliance_col']: random.choices([True, False], weights=[0.7, 0.3])[0],
-                    'duration_days': random.randint(*config['duration_range']),
-                    'officer_id': fake.uuid4(),
-                    'created_at': created_at
-                }
-                insert_log(cursor, table, record)
+            # Adjust number of records per quarter with seasonal variation
+            records_per_quarter = int(n * (0.8 if quarter in [1, 4] else 1.2)) // ((end_year - start_year + 1) * 4)
+            
+            for _ in range(records_per_quarter):
+                app_type = random.choice(app_types)
+                events = event_sequences[app_type]
+                event = random.choice(events)
+                
+                # Ensure realistic duration based on event type
+                duration_days = random.randint(1, 30) if event in ['received', 'evaluated'] else random.randint(30, 180)
+                
+                record = (
+                    fake.uuid4(),
+                    app_type,
+                    event,
+                    random.choices(statuses, status_weights)[0],
+                    random.choice([True, False]),
+                    duration_days,
+                    fake.uuid4(),
+                    random_date(year, quarter)
+                )
+                try:
+                    cursor.execute("""
+                        INSERT INTO ma_logs (
+                            application_id, application_type, event_type,
+                            status, is_continental, duration_days,
+                            officer_id, created_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """, record)
+                except mysql.connector.Error as e:
+                    logging.error(f"Error inserting MA log: {e}")
+
+def generate_ct_logs(cursor, n=1000):
+    """Generate CT logs with realistic process flow and quarterly variations"""
+    app_types = ['new', 'amendment']
+    event_sequences = {
+        'new': ['received', 'evaluated', 'gcp_inspected', 'safety_report_received', 'safety_report_assessed', 'registry_submission', 'capa_received', 'capa_evaluated'],
+        'amendment': ['received', 'evaluated', 'safety_report_received', 'safety_report_assessed', 'capa_received', 'capa_evaluated']
+    }
+    statuses = ['on_time', 'delayed', None]
+    status_weights = [0.65, 0.25, 0.1]
+
+    for year in range(start_year, end_year + 1):
+        for quarter in range(1, 5):
+            records_per_quarter = int(n * (0.9 if quarter in [2, 3] else 1.1)) // ((end_year - start_year + 1) * 4)
+            
+            for _ in range(records_per_quarter):
+                app_type = random.choice(app_types)
+                events = event_sequences[app_type]
+                event = random.choice(events)
+                
+                duration_days = random.randint(1, 20) if event == 'received' else random.randint(20, 120)
+                
+                record = (
+                    fake.uuid4(),
+                    app_type,
+                    event,
+                    random.choices(statuses, status_weights)[0],
+                    random.choice([True, False]),
+                    duration_days,
+                    fake.uuid4(),
+                    random_date(year, quarter)
+                )
+                try:
+                    cursor.execute("""
+                        INSERT INTO ct_logs (
+                            application_id, application_type, event_type,
+                            status, is_compliant, duration_days,
+                            officer_id, created_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """, record)
+                except mysql.connector.Error as e:
+                    logging.error(f"Error inserting CT log: {e}")
+
+def generate_gmp_logs(cursor, n=1000):
+    """Generate GMP logs with realistic process flow and quarterly variations"""
+    inspection_types = ['planned', 'complaint', 'waived']
+    event_sequences = {
+        'planned': ['application_received', 'inspection_conducted', 'report_published', 'capa_received', 'capa_reviewed'],
+        'complaint': ['application_received', 'inspection_conducted', 'report_published', 'capa_received', 'capa_reviewed'],
+        'waived': ['application_received', 'inspection_waived', 'application_processed']
+    }
+    statuses = ['on_time', 'delayed', None]
+    status_weights = [0.7, 0.2, 0.1]
+
+    for year in range(start_year, end_year + 1):
+        for quarter in range(1, 5):
+            records_per_quarter = int(n * (1.0 if quarter in [1, 2] else 0.8)) // ((end_year - start_year + 1) * 4)
+            
+            for _ in range(records_per_quarter):
+                insp_type = random.choice(inspection_types)
+                events = event_sequences[insp_type]
+                event = random.choice(events)
+                
+                duration_days = random.randint(1, 30) if event in ['application_received', 'inspection_waived'] else random.randint(30, 150)
+                
+                record = (
+                    fake.uuid4(),
+                    insp_type,
+                    event,
+                    random.choices(statuses, status_weights)[0],
+                    random.choice([True, False]),
+                    duration_days,
+                    fake.uuid4(),
+                    random_date(year, quarter)
+                )
+                try:
+                    cursor.execute("""
+                        INSERT INTO gmp_logs (
+                            facility_id, inspection_type, event_type,
+                            status, is_compliant, duration_days,
+                            officer_id, created_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """, record)
+                except mysql.connector.Error as e:
+                    logging.error(f"Error inserting GMP log: {e}")
 
 def main():
-    conn = connect_db()
-    cursor = conn.cursor()
+    """Main function to generate all logs"""
+    try:
+        conn = connect_db()
+        cursor = conn.cursor()
 
-    print("Generating MA logs...")
-    generate_logs(cursor, 'ma_logs', {
-        'columns': ['application_id'],
-        'type_col': 'application_type',
-        'types': ['new', 'renewal', 'variation'],
-        'event_types': ['received', 'evaluated', 'granted', 'fir_requested', 'fir_response_received', 'query_received', 'query_evaluated'],
-        'statuses': ['on_time', 'delayed', 'within_90_days', None],
-        'compliance_col': 'is_continental',
-        'duration_range': (1, 180)
-    })
+        logging.info("Generating dummy MA logs...")
+        generate_ma_logs(cursor, 1500)
+        logging.info("Generating dummy CT logs...")
+        generate_ct_logs(cursor, 1200)
+        logging.info("Generating dummy GMP logs...")
+        generate_gmp_logs(cursor, 1000)
 
-    print("Generating CT logs...")
-    generate_logs(cursor, 'ct_logs', {
-        'columns': ['application_id'],
-        'type_col': 'application_type',
-        'types': ['new', 'amendment'],
-        'event_types': ['received', 'evaluated', 'gcp_inspected', 'safety_report_received', 'safety_report_assessed', 'registry_submission', 'capa_received', 'capa_evaluated'],
-        'statuses': ['on_time', 'delayed', None],
-        'compliance_col': 'is_compliant',
-        'duration_range': (1, 120)
-    })
-
-    print("Generating GMP logs...")
-    generate_logs(cursor, 'gmp_logs', {
-        'columns': ['facility_id'],
-        'type_col': 'inspection_type',
-        'types': ['planned', 'complaint', 'waived'],
-        'event_types': ['inspection_conducted', 'inspection_waived', 'report_published', 'capa_received', 'capa_reviewed', 'application_received', 'application_processed'],
-        'statuses': ['on_time', 'delayed', None],
-        'compliance_col': 'is_compliant',
-        'duration_range': (1, 150)
-    })
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-    print("Dummy data inserted successfully.")
+        conn.commit()
+        logging.info("Dummy data inserted successfully.")
+    except Exception as e:
+        logging.error(f"Error in main execution: {e}")
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 if __name__ == "__main__":
     main()

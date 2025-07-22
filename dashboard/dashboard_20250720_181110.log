@@ -1,4 +1,0 @@
-2025-07-20 18:11:10,738 - main - INFO - Starting new application run, logging to dashboard_20250720_181110.log
-2025-07-20 18:11:10,741 - main - INFO - Environment variables loaded
-2025-07-20 18:11:10,741 - main - INFO - Attempting to establish database connection
-2025-07-20 18:11:10,892 - main - INFO - Database connection established successfully

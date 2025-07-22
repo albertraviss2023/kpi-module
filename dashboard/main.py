@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request, Depends
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Response, RedirectResponse
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy import create_engine, text
 import pandas as pd
 import numpy as np
@@ -11,10 +12,10 @@ import logging
 from typing import Any, List, Dict, Optional
 from datetime import datetime
 import re
-from pydantic import BaseModel  # Added missing import
+from pydantic import BaseModel
 import xlsxwriter
-from io import BytesIO  
-
+from io import BytesIO
+import secrets
 
 # Check for xlsxwriter availability
 try:
@@ -48,6 +49,9 @@ app = FastAPI(
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Security
+security = HTTPBasic()
 
 # Load environment variables
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
@@ -123,10 +127,22 @@ def clean_dataframe(df: pd.DataFrame, float_columns: List[str]) -> pd.DataFrame:
         logger.error(f"Failed to clean dataframe: {str(e)}", exc_info=True)
         raise
 
+# Authentication function
+def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, "admin")
+    correct_password = secrets.compare_digest(credentials.password, get_env_var("ADMIN_PASSWORD"))
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    """Serve the dashboard frontend."""
-    logger.info("Serving root endpoint (index.html)")
+    """Serve the login page."""
+    logger.info("Serving root endpoint (login page)")
     try:
         with open(os.path.join("static", "index.html")) as f:
             content = f.read()
@@ -134,6 +150,19 @@ async def read_root():
             return content
     except Exception as e:
         logger.error(f"Failed to serve index.html: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to load login page")
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def read_dashboard():
+    """Serve the dashboard page."""
+    logger.info("Serving dashboard endpoint")
+    try:
+        with open(os.path.join("static", "dashboard.html")) as f:
+            content = f.read()
+            logger.debug("Successfully read dashboard.html")
+            return content
+    except Exception as e:
+        logger.error(f"Failed to serve dashboard.html: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to load dashboard")
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -442,3 +471,4 @@ if __name__ == "__main__":
     logger.info("Starting FastAPI application")
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+    

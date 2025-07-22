@@ -1,0 +1,280 @@
+2025-07-22 03:00:02,307 - main - INFO - Starting new application run, logging to dashboard_20250722_030002.log
+2025-07-22 03:00:02,311 - main - INFO - Environment variables loaded
+2025-07-22 03:00:02,311 - main - INFO - Attempting to establish database connection
+2025-07-22 03:00:02,494 - main - INFO - Database connection established successfully
+2025-07-22 03:00:02,505 - main - INFO - CORS middleware configured
+2025-07-22 03:00:44,044 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:00:44,199 - mysql.connector - INFO - package: mysql.connector.plugins
+2025-07-22 03:00:44,200 - mysql.connector - INFO - plugin_name: caching_sha2_password
+2025-07-22 03:00:44,200 - mysql.connector - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-07-22 03:00:44,237 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:00:44,254 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:00:44,258 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:00:44,271 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:00:44,283 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:00:44,291 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:00:44,293 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:00:44,307 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:00:44,322 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:00:44,329 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:00:44,332 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:01:24,912 - main - INFO - Serving root endpoint (login page)
+2025-07-22 03:01:25,347 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:01:25,362 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:01:25,369 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:01:25,371 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:01:25,379 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:01:25,391 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:01:25,396 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:01:25,398 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:01:25,406 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:01:25,416 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:01:25,423 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:01:25,425 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:02:35,516 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:02:35,526 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:02:35,531 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:02:35,533 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:02:35,543 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:02:35,554 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:02:35,559 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:02:35,561 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:02:35,571 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:02:35,581 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:02:35,587 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:02:35,589 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:02:59,344 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:02:59,358 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:02:59,362 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:02:59,363 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:02:59,374 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:02:59,384 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:02:59,388 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:02:59,390 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:02:59,401 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:02:59,410 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:02:59,415 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:02:59,417 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:10:15,654 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:10:15,677 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:10:15,683 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:10:15,694 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:10:15,706 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:10:15,719 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:10:15,727 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:10:15,729 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:10:15,740 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:10:15,754 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:10:15,763 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:10:15,766 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:13:24,552 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:13:24,566 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:13:24,574 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:13:24,577 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:13:24,590 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:13:24,602 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:13:24,608 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:13:24,611 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:13:24,622 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:13:24,641 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:13:24,651 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:13:24,656 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:16:34,847 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:16:34,860 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:16:34,865 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:16:34,869 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:16:34,882 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:16:34,894 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:16:34,902 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:16:34,905 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:16:34,920 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:16:34,931 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:16:34,937 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:16:34,940 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:17:23,079 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:17:23,093 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:17:23,101 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:17:23,105 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:17:23,117 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:17:23,140 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:17:23,148 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:17:23,154 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:17:23,168 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:17:23,187 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:17:23,210 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:17:23,221 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:19:25,927 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:19:25,944 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:19:25,951 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:19:25,955 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:19:25,967 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:19:25,981 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:19:25,990 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:19:25,993 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:19:26,002 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:19:26,017 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:19:26,026 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:19:26,029 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:20:08,293 - main - INFO - Serving root endpoint (login page)
+2025-07-22 03:20:08,856 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:20:08,877 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:20:08,884 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:20:08,887 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:20:08,902 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:20:08,917 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:20:08,925 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:20:08,928 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:20:08,936 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:20:08,947 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:20:08,953 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:20:08,956 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:24:06,898 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:24:06,911 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:24:06,918 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:24:06,920 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:24:06,934 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:24:06,947 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:24:06,954 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:24:06,957 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:24:06,971 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:24:06,983 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:24:06,989 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:24:06,992 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:29:17,891 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:29:17,906 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:29:17,915 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:29:17,917 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:29:17,927 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:29:17,939 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:29:17,946 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:29:17,948 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:29:17,957 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:29:17,968 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:29:17,976 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:29:17,981 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:31:20,606 - main - INFO - Serving root endpoint (login page)
+2025-07-22 03:31:20,967 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:31:20,981 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:31:20,985 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:31:20,988 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:31:20,998 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:31:21,009 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:31:21,013 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:31:21,017 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:31:21,025 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:31:21,035 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:31:21,042 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:31:21,043 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:33:47,082 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:33:47,094 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:33:47,101 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:33:47,103 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:33:47,115 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:33:47,126 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:33:47,132 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:33:47,134 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:33:47,145 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:33:47,158 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:33:47,166 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:33:47,171 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:35:51,184 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:35:51,196 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:35:51,201 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:35:51,204 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:35:51,217 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:35:51,228 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:35:51,232 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:35:51,234 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:35:51,246 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:35:51,256 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:35:51,262 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:35:51,265 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:37:18,777 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:37:18,791 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:37:18,807 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:37:18,810 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:37:18,821 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:37:18,834 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:37:18,843 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:37:18,846 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:37:18,856 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:37:18,869 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:37:18,879 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:37:18,883 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:39:38,530 - main - INFO - Serving root endpoint (login page)
+2025-07-22 03:39:38,774 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:39:38,789 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:39:38,794 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:39:38,797 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:39:38,824 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:39:38,839 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:39:38,848 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:39:38,853 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:39:38,862 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:39:38,874 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:39:38,880 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:39:38,884 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:40:44,838 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:40:44,851 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:40:44,858 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:40:44,859 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:40:44,870 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:40:44,883 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:40:44,890 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:40:44,892 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:40:44,902 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:40:44,913 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:40:44,918 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:40:44,920 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:41:39,143 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:41:39,155 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:41:39,160 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:41:39,162 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:41:39,171 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:41:39,181 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:41:39,190 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:41:39,193 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:41:39,203 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:41:39,216 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:41:39,222 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:41:39,224 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:42:06,273 - main - INFO - Serving root endpoint (login page)
+2025-07-22 03:42:06,750 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:42:06,763 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:42:06,767 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:42:06,769 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:42:06,795 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:42:06,809 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:42:06,813 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:42:06,814 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:42:06,824 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:42:06,834 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:42:06,841 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:42:06,844 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:42:38,067 - main - INFO - Serving root endpoint (login page)
+2025-07-22 03:42:38,294 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:42:38,309 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:42:38,314 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:42:38,317 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:42:38,328 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:42:38,340 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:42:38,345 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:42:38,346 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:42:38,354 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:42:38,365 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:42:38,371 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:42:38,373 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:47:27,602 - main - INFO - Fetching MA KPIs for year: all years
+2025-07-22 03:47:27,613 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:47:27,618 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:47:27,622 - main - INFO - Successfully processed MA KPIs
+2025-07-22 03:47:27,637 - main - INFO - Fetching CT KPIs for year: all years
+2025-07-22 03:47:27,649 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:47:27,654 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:47:27,656 - main - INFO - Successfully processed CT KPIs
+2025-07-22 03:47:27,670 - main - INFO - Fetching GMP KPIs for year: all years
+2025-07-22 03:47:27,679 - main - INFO - Starting dataframe cleaning process
+2025-07-22 03:47:27,685 - main - INFO - Dataframe cleaning completed successfully
+2025-07-22 03:47:27,688 - main - INFO - Successfully processed GMP KPIs
+2025-07-22 03:58:17,165 - main - INFO - Exporting KPI data for years: 2024,2023, processes: ma,ct,gmp
+2025-07-22 03:58:17,488 - main - INFO - Successfully generated Excel file for selected years
